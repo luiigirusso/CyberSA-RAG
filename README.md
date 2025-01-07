@@ -4,8 +4,6 @@ In this notebook we implement a RAG system that starts from unstructured documen
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/luiigirusso/CyberSA-RAG/blob/main/GraphRAG.ipynb)
 
-
-
 # RAG without KGE models
 
 In this notebook we implement a RAG pipeline that consists of the following three modules:
@@ -17,3 +15,19 @@ In this notebook we implement a RAG pipeline that consists of the following thre
 + RAG, where the Retrieval and the Generation is performed
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/luiigirusso/CyberSA-RAG/blob/main/pipeline_without.ipynb)
+
+## How to run
+
+First, install the requirements:
+
+```bash
+pip install -r requirements.txt
+```
+
+Then, run the app.py with streamlit
+
+```bash
+streamlit run app.py
+```
+
+Finally the app will be available on `localhost:8501`
