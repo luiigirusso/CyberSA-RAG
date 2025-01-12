@@ -20,8 +20,8 @@ def cosine_similarity(A, B):
 # Funzione per fare la similarity search
 def similarity_search(question):
     # Carica gli embedding dal file JSON
-    embeddings_data = load_embeddings("./vector_database/entity_embeddings_arch.json")
-    embeddings_data.extend(load_embeddings("./vector_database/relation_embeddings_arch.json"))
+    embeddings_data = load_embeddings("pipeline/vector_database/entity_embeddings_arch.json")
+    embeddings_data.extend(load_embeddings("pipeline/vector_database/relation_embeddings_arch.json"))
 
     embedding_model = OpenAIEmbeddings(
         api_key=os.getenv("OPENAI_API_TOKEN"),
@@ -66,7 +66,7 @@ def generate_LLM_answer(question: str):
     return response.content
 
 def main():
-    load_dotenv("/pipeline/.env", override=True)
+    load_dotenv("C:/Users/luigi/Desktop/TESI/repo/CyberSA-RAG/pipeline/.env", override=True)
     st.title("RAG Chatbot with TransE embeddings")
     st.write("Ask your question and get answers from both RAG and LLM!")
 
