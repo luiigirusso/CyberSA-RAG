@@ -20,8 +20,8 @@ def cosine_similarity(A, B):
 # Funzione per fare la similarity search
 def similarity_search(question):
     # Carica gli embedding dal file JSON
-    embeddings_data = load_embeddings("vector_database/vector_database/entity_embeddings_arch.json")
-    embeddings_data.extend(load_embeddings("vector_database/vector_database/relation_embeddings_arch.json"))
+    embeddings_data = load_embeddings("./vector_database/entity_embeddings_arch.json")
+    embeddings_data.extend(load_embeddings("./vector_database/relation_embeddings_arch.json"))
 
     embedding_model = OpenAIEmbeddings(
         api_key=os.getenv("OPENAI_API_TOKEN"),
