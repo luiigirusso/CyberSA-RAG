@@ -1,0 +1,36 @@
+@prefix d3f: <http://example.org/d3f/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex: <http://example.org/entities/> .
+
+# Entità
+ex:EmailClient rdf:type d3f:User ;
+    rdfs:label "Email Client" .
+
+ex:SMTPServer rdf:type d3f:MailServer ;
+    rdfs:label "SMTP Server" .
+
+ex:IMAPServer rdf:type d3f:MailServer ;
+    rdfs:label "IMAP Server" .
+
+ex:MailDatabase rdf:type d3f:Database ;
+    rdfs:label "Mail Database" .
+
+ex:AuthenticationServer rdf:type d3f:AuthenticationServer ;
+    rdfs:label "Authentication Server" .
+
+ex:CredentialsDatabase rdf:type d3f:Database ;
+    rdfs:label "Credentials Database" .
+
+# Relazioni
+ex:EmailClient d3f:ProvidesCredentials ex:AuthenticationServer .
+ex:AuthenticationServer d3f:VerifiesCredentials ex:CredentialsDatabase .
+ex:CredentialsDatabase d3f:StoresCredentials ex:AuthenticationServer .
+ex:AuthenticationServer d3f:GrantsAccess ex:EmailClient .
+
+ex:EmailClient d3f:SendsEmail ex:SMTPServer .
+ex:SMTPServer d3f:VerifiesAuthentication ex:AuthenticationServer .
+ex:SMTPServer d3f:DeliversEmail ex:IMAPServer .
+ex:IMAPServer d3f:RetrievesEmail ex:EmailClient .
+ex:SMTPServer d3f:WritesTo ex:MailDatabase .
+ex:IMAPServer d3f:ReadsFrom ex:MailDatabase .

@@ -3,6 +3,7 @@ from langchain_openai import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
 import textwrap
 import numpy as np
+import re
 from numpy.linalg import norm
 import json
 import streamlit as st
@@ -12,16 +13,22 @@ from dotenv import load_dotenv
 def load_embeddings(file_path):
     with open(file_path, 'r') as file:
         return json.load(file)
-    
+
 def cosine_similarity(A, B):
     return np.dot(A,B)/(norm(A)*norm(B))
+
+# Funzione per estrarre l'ultima parte dell'URL
+def extract_name(url):
+    return re.split(r'[#/]', url)[-1]
 
 
 # Funzione per fare la similarity search
 def similarity_search(question):
     # Carica gli embedding dal file JSON
-    embeddings_data = load_embeddings("pipeline/vector_database/entity_embeddings_arch.json")
-    embeddings_data.extend(load_embeddings("pipeline/vector_database/relation_embeddings_arch.json"))
+    embeddings_data_entity = load_embeddings("C:/Users/luigi/Desktop/TESI/repo/CyberSA-RAG/pipeline/vector_database/transE_aligned_entity_arch.json")
+    embeddings_data_relation = load_embeddings("C:/Users/luigi/Desktop/TESI/repo/CyberSA-RAG/pipeline/vector_database/transE_aligned_relation_arch.json")
+
+    embeddings_data = {**embeddings_data_entity, **embeddings_data_relation}
 
     embedding_model = OpenAIEmbeddings(
         api_key=os.getenv("OPENAI_API_TOKEN"),
@@ -29,13 +36,15 @@ def similarity_search(question):
     )
     query_vector = embedding_model.embed_query(question)
 
+
+
     # Calcola la similarità per ciascun embedding
     similarities = []
-    for entry in embeddings_data:
-        entity_name = entry['name']
-        embedding = np.array(entry['embedding'])
+    for entity, embedding in embeddings_data.items():
+        entity_name = entity
+        embedding = np.array(embedding)
         similarity = cosine_similarity(query_vector, embedding)
-        similarities.append((entity_name, similarity))
+        similarities.append((extract_name(entity_name), similarity))
 
     # Ordina per similarità decrescente
     similarities.sort(key=lambda x: x[1], reverse=True)
