@@ -67,7 +67,6 @@ def generate_RAG_answer(question: str, context: str):
         model_name="gpt-3.5-turbo"
     )
     prompt = f"Answer the question based on the context: \n\nContext: {context}\n\nQuestion: {question}"
-    print(prompt)
     response = llm.invoke(prompt)
     return response.content
 
