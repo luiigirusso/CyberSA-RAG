@@ -54,7 +54,7 @@ def generate_LLM_answer(question: str):
 
 
 def main():
-    load_dotenv("C:/Users/luigi/Desktop/TESI/repo/CyberSA-RAG/pipeline_without/.env", override=True)
+    load_dotenv(".env", override=True)
     st.title("RAG Chatbot with Weaviate and OpenAI")
     st.write("Ask your question and get answers from both RAG and LLM!")
 

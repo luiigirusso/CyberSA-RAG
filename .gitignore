@@ -2,3 +2,4 @@
 venv
 pipeline/vector_database
 pipeline/knowledge_base
+enterprise-attack.json

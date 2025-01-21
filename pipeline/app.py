@@ -4,7 +4,7 @@ from langchain_openai import OpenAIEmbeddings
 import textwrap
 import numpy as np
 import re
-from numpy.linalg import norm
+from sklearn.metrics.pairwise import cosine_similarity
 import json
 import streamlit as st
 import pickle
@@ -15,9 +15,6 @@ def load_embeddings(file_path):
     with open(file_path, 'r') as file:
         return json.load(file)
 
-def cosine_similarity(A, B):
-    return np.dot(A,B)/(norm(A)*norm(B))
-
 # Funzione per estrarre l'ultima parte dell'URL solo se inizia con uno dei prefissi specificati
 def extract_name(url):
     prefixes = [
@@ -25,12 +22,16 @@ def extract_name(url):
         "http://www.w3.org/2000/01/rdf-schema#",
         "http://example.org/entities/",
         "http://example.org/d3f/",
-        "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        "http://www.w3.org/2002/07/owl#",
+        "http://www.w3.org/2004/02/skos/core#"
     ]
     for prefix in prefixes:
         if url.startswith(prefix):
             return re.split(r'[#/]', url)[-1]
-    return url  # Restituisce l'URL originale se nessun prefisso corrisponde
+    return url
+
+
 
 
 # Funzione per fare la similarity search
@@ -44,20 +45,17 @@ def similarity_search(question, path_similarity):
     )
     query_vector = embedding_model.embed_query(question)
 
-    # Calcola la similarità per ciascun embedding
-    similarities = []
-    for entity, embedding in embeddings_data.items():
-        entity_name = entity
-        embedding = np.array(embedding)
-        similarity = cosine_similarity(query_vector, embedding)
-        similarities.append((entity_name, similarity))
+    # Prepara i dati per sklearn (query_vector come lista annidata e lista di embedding)
+    embeddings_list = [np.array(embedding) for embedding in embeddings_data.values()]
+    entity_names = list(embeddings_data.keys())
 
+    # Calcola le similarità in un'unica operazione
+    similarities = cosine_similarity([query_vector], embeddings_list)[0]
 
-    # Ordina per similarità decrescente
-    similarities.sort(key=lambda x: x[1], reverse=True)
+    similarity_results = sorted(zip(entity_names, similarities), key=lambda x: x[1], reverse=True)
 
     # Restituisci i top_k risultati
-    return similarities[:4]
+    return similarity_results[:4]
 
 # Funzione per generare una risposta dal modello LLM
 def generate_RAG_answer(question: str, context: str):
@@ -103,7 +101,8 @@ def get_context(question, path_get_context, path_similarity):
         # Filtra le triple che corrispondono al target_string
         filtered_triples = [
             triple for triple in processed_triples 
-            if triple[0] == normalized_entity_name or triple[2] == extract_name(normalized_entity_name)
+            if triple[0] == extract_name(normalized_entity_name) or triple[2] == extract_name(normalized_entity_name)
+                or triple[0] == extract_name(entity_name) or triple[2] == extract_name(entity_name) 
         ]
         
         # Aggiunge i risultati al contesto
