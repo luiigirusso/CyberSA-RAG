@@ -1,0 +1,3 @@
+CALL n10s.graphconfig.init();
+CREATE CONSTRAINT n10s_unique_uri FOR (r:Resource) REQUIRE r.uri IS UNIQUE
+CALL n10s.rdf.import.fetch('file:///C:/Users/luigi/Desktop/TESI/repo/CyberSA-RAG/lan_v1.1.ttl', 'Turtle');

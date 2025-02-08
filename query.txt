@@ -1,0 +1,14 @@
+## Domande sulla struttura della rete
+Where is located the Web Server in my network?
+-- Non c'è un web server
+Is POP3 used in LAN2 to retrieve emails?
+-- POP3 è nella LAN1 non nella LAN2
+In LAN1 which MailServer are there?
+
+
+# Domande relative alla tecnica Remote Email Collection
+The system detected unusual changes in the configuration rules of my SMTP Server. What could it be related to?
+The system has detected some unusual accesses to my SMTP Server. What could be the problem?
+
+# Domande relative alle tecnica Network Denial of Service e Endpoint Denial of Service
+The system is detecting a much larger number of requests than usual to one of my Servers. What could this be due to?

@@ -1,7 +1,6 @@
 import os
 from langchain_openai import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
-import textwrap
 import numpy as np
 import re
 from sklearn.metrics.pairwise import cosine_similarity
@@ -24,6 +23,10 @@ def extract_name(url):
         "http://example.org/d3f/",
         "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
         "http://www.w3.org/2002/07/owl#",
+        "http://www.w3.org/2004/02/skos/core#",
+        "http://example.org/network#",
+        "http://example.org/stix#",
+        "http://www.w3.org/2000/01/rdf-schema#",
         "http://www.w3.org/2004/02/skos/core#"
     ]
     for prefix in prefixes:
@@ -55,16 +58,31 @@ def similarity_search(question, path_similarity):
     similarity_results = sorted(zip(entity_names, similarities), key=lambda x: x[1], reverse=True)
 
     # Restituisci i top_k risultati
-    return similarity_results[:4]
+    return similarity_results[:5]
 
 # Funzione per generare una risposta dal modello LLM
 def generate_RAG_answer(question: str, context: str):
     llm = ChatOpenAI(
         temperature=0,
         api_key=os.getenv("OPENAI_API_TOKEN"),
-        model_name="gpt-3.5-turbo"
+        model_name="gpt-4o-mini"
     )
-    prompt = f"Answer the question based on the context: \n\nContext: {context}\n\nQuestion: {question}"
+
+    prompt = [
+    (
+        "system",
+        """You are an AI assistant designed to support a security analyst by enhancing cyber situation awareness. 
+        Your primary goal is to provide relevant, context-aware insights based on the provided information.
+        
+        # Instruction
+        - Only use the information provided in the context to answer the question. Do not use any external information.
+        - Provide the most relevant and concise answer possible.
+        - Always prioritize enhancing the analyst's awareness and decision-making capabilities.
+        """,
+    ),
+    ("human", f"Context:\n{context}\n\nQuestion:\n{question}"),
+    ]
+
     response = llm.invoke(prompt)
     return response.content
 
@@ -73,7 +91,7 @@ def generate_LLM_answer(question: str):
     llm = ChatOpenAI(
         temperature=0,
         api_key=os.getenv("OPENAI_API_TOKEN"),
-        model_name="gpt-3.5-turbo"
+        model_name="gpt-4o-mini"
     )
     response = llm.invoke(question)
     return response.content
@@ -184,10 +202,10 @@ def main():
     # Mostra le risposte
     if st.session_state["rag_answer"] or st.session_state["llm_answer"]:
         st.subheader("RAG Answer:")
-        st.text(textwrap.fill(st.session_state["rag_answer"], 60))
+        st.markdown(st.session_state["rag_answer"])
 
         st.subheader("LLM Answer:")
-        st.text(textwrap.fill(st.session_state["llm_answer"], 60))
+        st.markdown(st.session_state["llm_answer"])
 
         # Bottone per mostrare/nascondere i risultati della similarity search
         if st.button("Show Similarity Search Results"):
@@ -196,7 +214,7 @@ def main():
         # Mostra i risultati della similarity search se attivati
         if st.session_state["show_similarity"]:
             st.subheader("Similarity Search Results:")
-            st.text(st.session_state["context"])
+            st.markdown(st.session_state["context"])
 
 if __name__ == "__main__":
     main()
