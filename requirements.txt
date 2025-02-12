@@ -1,4 +1,4 @@
 streamlit
-weaviate-client
 langchain-openai
 python-dotenv
+scikit-learn

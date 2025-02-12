@@ -1,5 +1,5 @@
 ## Domande sulla struttura della rete
-Where is located the Web Server in my network?
+Where is located the DNS Server in my network?
 -- Non c'è un web server
 Is POP3 used in LAN2 to retrieve emails?
 -- POP3 è nella LAN1 non nella LAN2
@@ -12,3 +12,14 @@ The system has detected some unusual accesses to my SMTP Server. What could be t
 
 # Domande relative alle tecnica Network Denial of Service e Endpoint Denial of Service
 The system is detecting a much larger number of requests than usual to one of my Servers. What could this be due to?
+
+
+
+###############################
+I detected many incoming UDP packets to my network that have “ANY” as an argument. What might this be due to and what asset in my network might be affected?
+How should I monitor network traffic to detect reflection amplification attack?
+Are there DNS or VoIP services in my network?
+
+
+How can I mitigate the reflection amplification attack?
+What filtering rules should I implement to block the traffic of a reflection amplification attack?

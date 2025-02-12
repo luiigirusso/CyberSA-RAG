@@ -1,6 +1,5 @@
 import os
-from langchain_openai import ChatOpenAI
-from langchain_openai import OpenAIEmbeddings
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 import numpy as np
 import re
 from sklearn.metrics.pairwise import cosine_similarity
@@ -9,12 +8,10 @@ import streamlit as st
 import pickle
 from dotenv import load_dotenv
 
-# Funzione per caricare i dati JSON
 def load_embeddings(file_path):
     with open(file_path, 'r') as file:
         return json.load(file)
 
-# Funzione per estrarre l'ultima parte dell'URL solo se inizia con uno dei prefissi specificati
 def extract_name(url):
     prefixes = [
         "http://d3fend.mitre.org/ontologies/d3fend.owl#",
@@ -26,38 +23,24 @@ def extract_name(url):
         "http://www.w3.org/2004/02/skos/core#",
         "http://example.org/network#",
         "http://example.org/stix#",
-        "http://www.w3.org/2000/01/rdf-schema#",
-        "http://www.w3.org/2004/02/skos/core#"
-    ]
+        "http://www.w3.org/2000/01/rdf-schema#"
+                ]
     for prefix in prefixes:
         if url.startswith(prefix):
             return re.split(r'[#/]', url)[-1]
     return url
 
-
-
-
-# Funzione per fare la similarity search
 def similarity_search(question, path_similarity):
-    # Carica gli embedding dal file JSON
     embeddings_data = load_embeddings(path_similarity)
-
     embedding_model = OpenAIEmbeddings(
         api_key=os.getenv("OPENAI_API_TOKEN"),
         model="text-embedding-ada-002",
     )
     query_vector = embedding_model.embed_query(question)
-
-    # Prepara i dati per sklearn (query_vector come lista annidata e lista di embedding)
     embeddings_list = [np.array(embedding) for embedding in embeddings_data.values()]
     entity_names = list(embeddings_data.keys())
-
-    # Calcola le similarità in un'unica operazione
     similarities = cosine_similarity([query_vector], embeddings_list)[0]
-
     similarity_results = sorted(zip(entity_names, similarities), key=lambda x: x[1], reverse=True)
-
-    # Restituisci i top_k risultati
     return similarity_results[:5]
 
 # Funzione per generare una risposta dal modello LLM
@@ -71,13 +54,14 @@ def generate_RAG_answer(question: str, context: str):
     prompt = [
     (
         "system",
-        """You are an AI assistant designed to support a security analyst by enhancing cyber situation awareness. 
-        Your primary goal is to provide relevant, context-aware insights based on the provided information.
-        
-        # Instruction
-        - Only use the information provided in the context to answer the question. Do not use any external information.
-        - Provide the most relevant and concise answer possible.
-        - Always prioritize enhancing the analyst's awareness and decision-making capabilities.
+        """
+        You are an AI assistant designed to support a security analyst in monitoring, detecting, and mitigating DDoS and DoS attacks.  
+        Your primary goal is to enhance the analyst's cyber situation awareness by providing concise, context-aware insights.  
+
+        # Instructions  
+        - Use only the information provided in the context. Do not use any external sources.  
+        - Prioritize clear and concise answers that directly assist the analyst.  
+        - Focus on practical insights that improve the analyst’s decision-making.  
         """,
     ),
     ("human", f"Context:\n{context}\n\nQuestion:\n{question}"),
@@ -86,7 +70,6 @@ def generate_RAG_answer(question: str, context: str):
     response = llm.invoke(prompt)
     return response.content
 
-    # Funzione per generare una risposta dal modello LLM
 def generate_LLM_answer(question: str):
     llm = ChatOpenAI(
         temperature=0,
@@ -147,75 +130,40 @@ def format_triples(triples):
     
     return formatted
 
-
 def main():
     load_dotenv(".env", override=True)
-    st.title("RAG Chatbot with TransE embeddings")
-    st.write("Ask your question and get answers from both RAG and LLM!")
+    st.title("🔐 Security Analyst AI Assistant")
+    st.write("Ask your cybersecurity-related questions.")
 
-    # Aggiungi un selectbox per scegliere il dataset
-    dataset_choice = st.selectbox(
-        "Choose your dataset:",
-        ("d3fend", "architecture")
-    )
-
-    question = st.text_input("Enter your question:", "")
-
-    # Inizializza lo stato della sessione per i dati
-    if "context" not in st.session_state:
-        st.session_state["context"] = ""
-    if "rag_answer" not in st.session_state:
-        st.session_state["rag_answer"] = ""
-    if "llm_answer" not in st.session_state:
-        st.session_state["llm_answer"] = ""
-    if "show_similarity" not in st.session_state:
-        st.session_state["show_similarity"] = False
-
-    if st.button("Ask"):
-        if question.strip():
-            # Carica i dati in base alla selezione del dataset
-            if dataset_choice == "d3fend":
-                path_get_context = os.getenv('output_path')
-                path_similarity = os.getenv("embeddings_file")
-            else:  # 'architecture'
-                path_get_context = os.getenv('output_path_arch')
-                path_similarity = os.getenv("embeddings_file_arch")
-
-            # Ottieni il contesto e le triple per la risposta
-            context, triples = get_context(question, path_get_context, path_similarity)
-
-            formatted_context = format_similarity_results(context)
-            formatted_triples = format_triples(triples)
-            st.session_state["context"] = formatted_context + formatted_triples
-
-            # Genera la risposta RAG
-            st.session_state["rag_answer"] = generate_RAG_answer(question, triples)
-
-            # Genera la risposta LLM
-            st.session_state["llm_answer"] = generate_LLM_answer(question)
-
-            # Resetta la visualizzazione della similarity search
-            st.session_state["show_similarity"] = False
-        else:
-            st.warning("Please enter a question.")   
-
-    # Mostra le risposte
-    if st.session_state["rag_answer"] or st.session_state["llm_answer"]:
-        st.subheader("RAG Answer:")
-        st.markdown(st.session_state["rag_answer"])
-
-        st.subheader("LLM Answer:")
-        st.markdown(st.session_state["llm_answer"])
-
-        # Bottone per mostrare/nascondere i risultati della similarity search
-        if st.button("Show Similarity Search Results"):
-            st.session_state["show_similarity"] = not st.session_state["show_similarity"]
-
-        # Mostra i risultati della similarity search se attivati
-        if st.session_state["show_similarity"]:
-            st.subheader("Similarity Search Results:")
-            st.markdown(st.session_state["context"])
+    if "messages" not in st.session_state:
+        st.session_state["messages"] = []
+    
+    for msg in st.session_state["messages"]:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+    
+    if user_input := st.chat_input("Enter your question..."):
+        st.session_state["messages"].append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.markdown(user_input)
+        
+        path_get_context = os.getenv('output_path_arch')
+        path_similarity = os.getenv("embeddings_file_arch")
+        context, triples = get_context(user_input, path_get_context, path_similarity)
+        formatted_context = format_similarity_results(context)
+        formatted_triples = format_triples(triples)
+        rag_answer = generate_RAG_answer(user_input, triples)
+        llm_answer = generate_LLM_answer(user_input)
+        
+        with st.chat_message("assistant"):
+            st.markdown(f"{rag_answer}")
+        st.session_state["messages"].append({"role": "assistant", "content": rag_answer})
+        
+        with st.expander("🔍 Show LLM Answer"):
+            st.markdown(llm_answer)
+        
+        with st.expander("📚 Show Context"):
+            st.markdown(formatted_context + formatted_triples)
 
 if __name__ == "__main__":
     main()
-   
