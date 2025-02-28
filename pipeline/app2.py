@@ -57,6 +57,18 @@ def search(question):
         Your task is to output only the Cypher query with no additional text.
         Here are some examples:
 
+        Natural language: "Is POP3 used to retrieve emails in LAN1?"
+
+        MATCH (net:ns0__Network)
+        WHERE net.rdfs__label="LAN 1"
+        RETURN net.uri AS uri
+
+        Natural language: "Is POP3 used to retrieve emails in my network?"
+
+        MATCH (net:ns0__Network)
+        RETURN net.uri AS uri
+
+
         Natural language: "I detected many incoming UDP packets to my network that have 'ANY' as an argument. What might this be due to and what services in my network might be affected?"
 
         MATCH (dc:ns2__XMitreDataComponent)
@@ -70,28 +82,28 @@ def search(question):
 
         MATCH (n)
         WHERE tolower(n.rdfs__label) CONTAINS "dns" OR tolower(n.rdfs__label) CONTAINS "ntp"
-        RETURN n.uri
+        RETURN n.uri AS uri
 
         
         Natural language: "Can you explain how a DNS amplification attack works?"
 
         MATCH (n)
         WHERE tolower(n.rdfs__label) CONTAINS "amplification" 
-        RETURN n.uri
+        RETURN n.uri AS uri
 
         
         Natural language: "What services use DNSServer for domain name resolution in my network?"
 
         MATCH (n)
         WHERE tolower(n.rdfs__label) CONTAINS "dns"
-        RETURN n.uri
+        RETURN n.uri AS uri
 
         
         Natural language: "How can I mitigate a DNS amplification attack if the target is an SMTPServer?"
 
         MATCH (n)
         WHERE tolower(n.rdfs__label) CONTAINS "amplification" 
-        RETURN n.uri  
+        RETURN n.uri AS uri
         """),
         ("human", f"Question:\n{question}"),
     ]
@@ -99,15 +111,13 @@ def search(question):
     # Ottenere la query Cypher generata
     response = llm.invoke(prompt)
     cypher_query = response.content.strip()
-
-    print(f"Generated Cypher Query:\n{cypher_query}")
-
+    
     # Connettersi al database Neo4j e eseguire la query
     result = kg.query(cypher_query)
     
-    uris = [entry['n.uri'] for entry in result]
+    uris = [entry['uri'] for entry in result]
 
-    return uris
+    return uris, cypher_query
 
 # Funzione per generare una risposta dal modello LLM
 def generate_RAG_answer(question: str, context: str):
@@ -147,7 +157,7 @@ def generate_LLM_answer(question: str):
 
 def get_context(question, path_get_context):
     context = []
-    results = search(question)
+    results, cypher_query = search(question)
     # Carica i dati dal file pickle
     with open(path_get_context, 'rb') as f:
         train_triples, valid_triples, test_triples = pickle.load(f)
@@ -171,7 +181,7 @@ def get_context(question, path_get_context):
         # Aggiunge i risultati al contesto
         context.append((filtered_triples, 1.0))
 
-    return results,context
+    return results,context,cypher_query
 
 # Funzione per formattare i risultati
 def format_similarity_results(results):
@@ -194,7 +204,7 @@ def format_triples(triples):
 
 def main():
     load_dotenv(".env", override=True)
-    st.title("🔐 Security Analyst AI Assistant")
+    st.title("🔒 Security Analyst AI Assistant")
     st.write("Ask your cybersecurity-related questions.")
 
     if "messages" not in st.session_state:
@@ -210,7 +220,7 @@ def main():
             st.markdown(user_input)
         
         path_get_context = os.getenv('output_path_arch')
-        context, triples = get_context(user_input, path_get_context)
+        context, triples, cypher_query = get_context(user_input, path_get_context)  # Recupera la query Cypher generata
         formatted_context = format_similarity_results(context)
         formatted_triples = format_triples(triples)
         rag_answer = generate_RAG_answer(user_input, triples)
@@ -225,6 +235,10 @@ def main():
         
         with st.expander("📚 Show Context"):
             st.markdown(formatted_context + formatted_triples)
+        
+        with st.expander("📊 Show Generated Cypher Query"):
+            st.code(cypher_query, language="cypher")
 
 if __name__ == "__main__":
     main()
+
