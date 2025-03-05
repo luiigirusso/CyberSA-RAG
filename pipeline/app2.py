@@ -57,18 +57,6 @@ def search(question):
         Your task is to output only the Cypher query with no additional text.
         Here are some examples:
 
-        Natural language: "Is POP3 used to retrieve emails in LAN1?"
-
-        MATCH (net:ns0__Network)
-        WHERE net.rdfs__label="LAN 1"
-        RETURN net.uri AS uri
-
-        Natural language: "Is POP3 used to retrieve emails in my network?"
-
-        MATCH (net:ns0__Network)
-        RETURN net.uri AS uri
-
-
         Natural language: "I detected many incoming UDP packets to my network that have 'ANY' as an argument. What might this be due to and what services in my network might be affected?"
 
         MATCH (dc:ns2__XMitreDataComponent)
@@ -76,34 +64,30 @@ def search(question):
         UNION
         MATCH (ap:ns2__AttackPattern)
         RETURN DISTINCT ap.uri AS uri
-
         
         Natural language: "Are there DNS, NTP, or other UDP-based services in my network?"
 
-        MATCH (n)
-        WHERE tolower(n.rdfs__label) CONTAINS "dns" OR tolower(n.rdfs__label) CONTAINS "ntp"
-        RETURN n.uri AS uri
+        MATCH (s:ns0__Network)-[p:ns1__contains]->(o)
+        WHERE tolower(o.uri) CONTAINS "dns" OR tolower(o.uri) CONTAINS "ntp"
+        RETURN o.uri AS uri
 
         
         Natural language: "Can you explain how a DNS amplification attack works?"
 
-        MATCH (n)
-        WHERE tolower(n.rdfs__label) CONTAINS "amplification" 
-        RETURN n.uri AS uri
+        MATCH (ap:ns2__AttackPattern)
+        WHERE tolower(ap.rdfs__label) CONTAINS "amplification" 
+        RETURN ap.uri AS subject, "description" AS predicate, ap.ns2__description AS object
 
         
-        Natural language: "What services use DNSServer for domain name resolution in my network?"
+        Natural language: "How can I mitigate a DNS amplification attack?"
 
-        MATCH (n)
-        WHERE tolower(n.rdfs__label) CONTAINS "dns"
-        RETURN n.uri AS uri
-
-        
-        Natural language: "How can I mitigate a DNS amplification attack if the target is an SMTPServer?"
-
-        MATCH (n)
-        WHERE tolower(n.rdfs__label) CONTAINS "amplification" 
-        RETURN n.uri AS uri
+        MATCH (s)-[p:`ns2__mitigated-by`]->(o)
+        WHERE tolower(s.rdfs__label) CONTAINS "amplification"
+        RETURN s.uri AS subject, type(p) AS predicate, o.uri AS object
+        UNION
+        MATCH (s)-[p:`ns2__mitigated-by`]->(o)
+        WHERE tolower(s.rdfs__label) CONTAINS "amplification"
+        RETURN o.uri AS subject, "description" AS predicate, o.ns2__description AS object
         """),
         ("human", f"Question:\n{question}"),
     ]
@@ -114,10 +98,16 @@ def search(question):
     
     # Connettersi al database Neo4j e eseguire la query
     result = kg.query(cypher_query)
-    
-    uris = [entry['uri'] for entry in result]
+    uris = []
+    triples = []
 
-    return uris, cypher_query
+    for entry in result:
+        if 'subject' in entry and 'predicate' in entry and 'object' in entry:
+            triples.append((extract_name(entry['subject']), extract_name(entry['predicate']), extract_name(entry['object'])))
+        elif 'uri' in entry:
+            uris.append(entry['uri'])
+
+    return uris,triples, cypher_query
 
 # Funzione per generare una risposta dal modello LLM
 def generate_RAG_answer(question: str, context: str):
@@ -135,9 +125,10 @@ def generate_RAG_answer(question: str, context: str):
         Your primary goal is to enhance the analyst's cyber situation awareness by providing concise, context-aware insights.  
 
         # Instructions  
-        - Use only the information provided in the context. Do not use any external sources.  
+        - Answer exclusively based on the information provided in the context; do not use your own pre-existing knowledge or external sources. 
         - Prioritize clear and concise answers that directly assist the analyst.  
         - Focus on practical insights that improve the analyst’s decision-making.  
+        - After 
         """,
     ),
     ("human", f"Context:\n{context}\n\nQuestion:\n{question}"),
@@ -157,30 +148,33 @@ def generate_LLM_answer(question: str):
 
 def get_context(question, path_get_context):
     context = []
-    results, cypher_query = search(question)
-    # Carica i dati dal file pickle
-    with open(path_get_context, 'rb') as f:
-        train_triples, valid_triples, test_triples = pickle.load(f)
+    results,triples, cypher_query = search(question)
+    if triples:
+        for triple in triples:
+            context.append((triple, 1.0))
+    else:
+        # Carica i dati dal file pickle
+        with open(path_get_context, 'rb') as f:
+            train_triples, valid_triples, test_triples = pickle.load(f)
 
-    # Combina tutte le triple
-    all_triples = train_triples + valid_triples + test_triples
+        # Combina tutte le triple
+        all_triples = train_triples + valid_triples + test_triples
 
-    # Crea una nuova lista di triple con i valori aggiornati
-    processed_triples = [
-        (extract_name(triple[0]), extract_name(triple[1]), extract_name(triple[2]))
-        for triple in all_triples
-    ]
-    # Elaborazione
-    for entity_name in results:        
-        # Filtra le triple che corrispondono al target_string
-        filtered_triples = [
-            triple for triple in processed_triples 
-            if triple[0] == extract_name(entity_name) or triple[2] == extract_name(entity_name) 
+        # Crea una nuova lista di triple con i valori aggiornati
+        processed_triples = [
+            (extract_name(triple[0]), extract_name(triple[1]), extract_name(triple[2]))
+            for triple in all_triples
         ]
-        
-        # Aggiunge i risultati al contesto
-        context.append((filtered_triples, 1.0))
+        # Elaborazione
+        for entity_name in results:        
+            # Filtra le triple che corrispondono al target_string
+            filtered_triples = [
+                triple for triple in processed_triples 
+                if triple[0] == extract_name(entity_name) or triple[2] == extract_name(entity_name) 
+            ]
 
+            # Aggiunge i risultati al contesto
+            context.append((filtered_triples, 1.0))
     return results,context,cypher_query
 
 # Funzione per formattare i risultati
@@ -192,13 +186,15 @@ def format_similarity_results(results):
     
     return formatted
 
-def format_triples(triples):
-    formatted = "\nAssociated Triples:\n"
-    
+def format_triples(triples, flag):
+    formatted = "\nTriples:\n"
     for triple_group, similarity in triples:
         formatted += f"\nSimilarity: {similarity:.4f}\n"
-        for triple in triple_group:
-            formatted += f"  - {triple[0]} {triple[1]} {triple[2]}\n"
+        if flag == 0:
+            formatted += f"- {triple_group}\n"
+        else:
+            for triple in triple_group:
+                formatted += f"  - {triple[0]} {triple[1]} {triple[2]}\n"
     
     return formatted
 
@@ -221,8 +217,13 @@ def main():
         
         path_get_context = os.getenv('output_path_arch')
         context, triples, cypher_query = get_context(user_input, path_get_context)  # Recupera la query Cypher generata
-        formatted_context = format_similarity_results(context)
-        formatted_triples = format_triples(triples)
+        flag = 0
+        if context:
+            formatted_context = format_similarity_results(context)
+            flag = 1
+        else:
+            formatted_context = ""
+        formatted_triples = format_triples(triples, flag)
         rag_answer = generate_RAG_answer(user_input, triples)
         llm_answer = generate_LLM_answer(user_input)
         
