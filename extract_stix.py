@@ -44,9 +44,9 @@ def filter_stix_objects_by_techniques(stix_file_path, techniques, output_file_pa
 # Percorso del file STIX di input
 stix_file = "enterprise-attack.json"
 # Lista delle tecniche desiderate
-techniques = ["Application or System Exploitation"]
+techniques = ["Reflection Amplification", "Filter Network Traffic", "Network Traffic", "Sensor Health"]
 # Percorso per salvare il file STIX filtrato
-output_file = "ApplicationorSystemExploitation.json"
+output_file = "ReflectionAmplification.json"
 
 # Filtra e salva il sotto-grafo
 filter_stix_objects_by_techniques(stix_file, techniques, output_file)

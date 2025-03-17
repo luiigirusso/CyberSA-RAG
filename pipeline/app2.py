@@ -59,7 +59,7 @@ def search(question):
 
         Natural language: "I detected many incoming UDP packets to my network that have 'ANY' as an argument. What might this be due to and what services in my network might be affected?"
 
-        MATCH (dc:ns2__XMitreDataComponent)
+        MATCH (dc:ns2__DataComponent)
         RETURN DISTINCT dc.uri AS uri
         UNION
         MATCH (ap:ns2__AttackPattern)
@@ -81,13 +81,13 @@ def search(question):
         
         Natural language: "How can I mitigate a DNS amplification attack?"
 
-        MATCH (s)-[p:`ns2__mitigated-by`]->(o)
-        WHERE tolower(s.rdfs__label) CONTAINS "amplification"
+        MATCH (s)-[p:`ns2__mitigates`]->(o)
+        WHERE tolower(o.rdfs__label) CONTAINS "amplification"
         RETURN s.uri AS subject, type(p) AS predicate, o.uri AS object
         UNION
-        MATCH (s)-[p:`ns2__mitigated-by`]->(o)
-        WHERE tolower(s.rdfs__label) CONTAINS "amplification"
-        RETURN o.uri AS subject, "description" AS predicate, o.ns2__description AS object
+        MATCH (s)-[p:`ns2__mitigates`]->(o)
+        WHERE tolower(o.rdfs__label) CONTAINS "amplification"
+        RETURN s.uri AS subject, "description" AS predicate, s.ns2__description AS object
         """),
         ("human", f"Question:\n{question}"),
     ]

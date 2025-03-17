@@ -1,27 +1,44 @@
+
 I have detected a high volume of SYN packets to one of my Servers, what could this be due to?
-I detected many incoming UDP packets to my network that have “ANY” as an argument. What might this be due to and what services in my network might be affected?
-MATCH (dc:ns2__XMitreDataComponent)
+
+I detected many incoming UDP packets to my network that have “ANY” as an argument. What might this be due to?
+MATCH (dc:ns2__DataComponent)
 RETURN DISTINCT dc.uri AS uri
 UNION
 MATCH (ap:ns2__AttackPattern)
 RETURN DISTINCT ap.uri AS uri
 
 Are there DNS, NTP, or other UDP-based services in my network?
-MATCH (n)
-WHERE tolower(n.rdfs__label) CONTAINS "dns" OR tolower(n.rdfs__label) CONTAINS "ntp"
-RETURN n.uri
+MATCH (s:ns0__Network)-[p:ns1__contains]->(o)
+WHERE tolower(o.rdfs__label) CONTAINS "dns" OR tolower(o.rdfs__label) CONTAINS "ntp"
+RETURN o.uri AS uri
 
 Can you explain how a DNS amplification attack works?
 MATCH (n)
 WHERE tolower(n.rdfs__label) CONTAINS "amplification" 
-RETURN n.uri
+RETURN n.uri AS subject, "description" AS predicate, n.ns2__description AS object
+
+
+Can you explain how a Reflection Amplification attack works?
+
+MATCH (ap:ns2__AttackPattern)
+WHERE ap.rdfs__label = "Reflection Amplification"
+RETURN ap.ns2__description
+
+MATCH (ap:A)
+WHERE tolower(n.rdfs__label) CONTAINS "amplification" 
+RETURN n.uri AS subject, "description" AS predicate, n.ns2__description AS object
 
 What services use DNSServer for domain name resolution in my network?
-MATCH (n)
-WHERE tolower(n.rdfs__label) CONTAINS "DNS"
-RETURN n.uri
+MATCH (s:ns0__Network)-[p:ns1__contains]->(o)
+WHERE tolower(o.rdfs__label) CONTAINS "dns" 
+RETURN o.uri
 
-How can I mitigate a DNS amplification attack if the target is an SMTPServer?
-MATCH (n)
-WHERE tolower(n.rdfs__label) CONTAINS "amplification" 
-RETURN n.uri
+How can I mitigate a DNS amplification attack?
+MATCH (s)-[p:`ns2__mitigates`]->(o)
+WHERE tolower(o.rdfs__label) CONTAINS "amplification"
+RETURN s.uri AS subject, type(p) AS predicate, o.uri AS object
+UNION
+MATCH (s)-[p:`ns2__mitigates`]->(o)
+WHERE tolower(o.rdfs__label) CONTAINS "amplification"
+RETURN s.uri AS subject, "description" AS predicate, s.ns2__description AS object
