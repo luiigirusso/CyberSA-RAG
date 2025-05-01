@@ -2,4 +2,4 @@ MATCH (n) DETACH DELETE n;
 
 CALL n10s.graphconfig.init();
 CREATE CONSTRAINT n10s_unique_uri FOR (r:Resource) REQUIRE r.uri IS UNIQUE
-CALL n10s.rdf.import.fetch('file:///C:/Users/luigi/Videos/CyberSA-RAG/lan_v1.3.ttl', 'Turtle');
+CALL n10s.rdf.import.fetch('file:///C:/Users/luigi/Videos/CyberSA-RAG/lan_v1.5.ttl', 'Turtle');

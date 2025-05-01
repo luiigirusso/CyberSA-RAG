@@ -1,0 +1,719 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix stix: <http://example.org/stix#> .
+@prefix d3f: <http://d3fend.mitre.org/ontologies/d3fend.owl#> .
+@prefix arch: <http://example.org/network#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> . 
+@base <http://example.org/network#> .
+
+# SCHEMA DEFINITION
+## EXAMPLE NETWORK
+
+arch:MailServerReceiver rdf:type owl:Class ;
+                        rdfs:subClassOf d3f:MailServer ;
+                        owl:disjointWith arch:MailServerSender .
+
+arch:MailServerSender rdf:type owl:Class ;
+                        rdfs:subClassOf d3f:MailServer .
+
+arch:SMTPServer a owl:Class ;
+    rdfs:subClassOf arch:MailServerSender;
+    rdfs:label "SMTPServer" ;
+    rdfs:comment "Class representing an email server that handles the SMTP protocol for sending emails." .
+
+arch:IMAPServer a owl:Class ;
+    rdfs:subClassOf arch:MailServerReceiver ;
+    rdfs:label "IMAPServer" ;
+    rdfs:comment "Class representing an email server that handles the IMAP protocol for receiving emails, allowing users to manage messages on the server." .
+
+arch:POP3Server a owl:Class ;
+    rdfs:subClassOf arch:MailServerReceiver ;
+    rdfs:label "POP3Server" ;
+    rdfs:comment "Class representing an email server that handles the POP3 protocol for receiving emails, downloading messages from the server to a local device." .
+
+arch:contains a owl:ObjectProperty ;
+    rdfs:domain d3f:Network ;
+    rdfs:range d3f:Server, d3f:ComputerNetworkNode, d3f:PersonalComputer .
+
+arch:wired_connection a owl:ObjectProperty ;
+    rdfs:domain d3f:Server, d3f:PersonalComputer;
+    rdfs:range d3f:Router .
+
+arch:wireless_connection a owl:ObjectProperty ;
+    rdfs:domain d3f:PersonalComputer ;
+    rdfs:range d3f:WirelessAccessPoint .
+
+arch:provide_mail_access a owl:ObjectProperty ;
+    rdfs:domain d3f:MailServer ;
+    rdfs:range d3f:PersonalComputer .
+
+arch:delivers_mail a owl:ObjectProperty ;
+    rdfs:domain arch:SMTPServer ;
+    rdfs:range arch:MailServerReceiver .
+
+
+arch:provides_vpn_access a owl:ObjectProperty ;
+    rdfs:domain d3f:VPNServer ;
+    rdfs:range d3f:DigitalArtifact .
+
+arch:resolves_mail a owl:ObjectProperty ;
+    rdfs:domain d3f:DNSServer ;
+    rdfs:range d3f:MailServer .
+
+arch:validates_mail_domains a owl:ObjectProperty ;
+    rdfs:domain d3f:DNSServer ;
+    rdfs:range d3f:MailServer .
+
+arch:filter_traffic a owl:ObjectProperty ;
+    rdfs:domain d3f:Firewall ;
+    rdfs:range d3f:DigitalArtifact .
+
+## D3FEND
+d3f:DigitalArtifact a owl:Class ;
+    rdfs:label "Digital Artifact" ;
+    d3f:definition "An information-bearing artifact (object) that is, or is encoded to be used with, a digital computer system. This concept is broad to include the literal instances of an artifact, or an implicit summarization of changes to or properties of other artifacts." ;
+    d3f:synonym "Digital Asset" ;
+    rdfs:seeAlso <http://dbpedia.org/resource/Digital_artifactual_value>,
+        <http://dbpedia.org/resource/Virtual_artifact>,
+        <https://www.iso.org/obp/ui/#iso:std:iso-iec:19770:-1:ed-3:v1:en> .
+
+d3f:Server a owl:Class;
+    rdfs:subClassOf d3f:DigitalArtifact ;
+    rdfs:label "Server" ;
+    d3f:definition "In computing, a server is a piece of computer hardware or software (computer program) that provides functionality for other programs or devices, called \"clients\". This architecture is called the client-server model. Servers can provide various functionalities, often called \"services\", such as sharing data or resources among multiple clients, or performing computation for a client. A single server can serve multiple clients, and a single client can use multiple servers. A client process may run on the same device or may connect over a network to a server on a different device. Typical servers are database servers, file servers, mail servers, print servers, web servers, game servers, and application servers." ;
+    rdfs:isDefinedBy <http://dbpedia.org/resource/Server_(computing)> .
+
+d3f:MailServer a owl:Class ;
+    rdfs:subClassOf d3f:Server ;
+    rdfs:label "Mail Server" ;
+    d3f:definition "Within the Internet email system, a message transfer agent or mail transfer agent (MTA) or mail relay is software that transfers electronic mail messages from one computer to another using SMTP. The terms mail server, mail exchanger, and MX host are also used in some contexts. Messages exchanged across networks are passed between mail servers, including any attached data files (such as images, multimedia or documents). These servers also often keep mailboxes for email. Access to this email by end users is typically either via webmail or an email client." ;
+    rdfs:isDefinedBy <http://dbpedia.org/resource/Message_transfer_agent> ;
+    skos:altLabel "Email Server Resource\nMTA\nMX Host\nMail Exchanger\nMail transfer agent\nMessage transfer agent" .
+
+d3f:DNSServer a owl:Class ;
+    rdfs:subClassOf d3f:Server ;
+    rdfs:label "DNS Server" ;
+    d3f:definition """A Domain Name System (DNS) name server is a kind of name server.  Domain names are one of the two principal namespaces of the Internet. The most important function of DNS servers is the translation (resolution) of human-memorable domain names and hostnames into the corresponding numeric Internet Protocol (IP) addresses, the second principal name space of the Internet which is used to identify and locate computer systems and resources on the Internet. (en).\n\nMore generally, a name server is a computer application that implements a network service for providing responses to queries against a directory service. It translates an often humanly meaningful, text-based identifier to a system-internal, often numeric identification or addressing component. This service is performed by the server in response to a service protocol request.""" ;
+    rdfs:isDefinedBy <http://dbpedia.org/resource/Name_server> .
+
+d3f:VPNServer a owl:Class ;
+    rdfs:subClassOf d3f:Server ;
+    rdfs:label "VPN Server" ;
+    d3f:definition """A VPN server is a type of server that enables hosting and delivery of VPN services.\n\nIt is a combination of VPN hardware and software technologies that provides VPN clients with connectivity to a secure and/or private network, or rather, the VPN.""" ;
+    rdfs:isDefinedBy <https://www.techopedia.com/definition/30750/vpn-server> ;
+    rdfs:seeAlso <http://dbpedia.org/resource/Virtual_private_network> .
+
+d3f:Network a owl:Class ;
+    rdfs:label "Network" ;
+    d3f:definition "A network is a group of computers that use a set of common communication protocols over digital interconnections for the purpose of sharing resources located on or provided by the network nodes. The interconnections between nodes are formed from a broad spectrum of telecommunication network technologies, based on physically wired, optical, and wireless radio-frequency methods that may be arranged in a variety of network topologies." ;
+    rdfs:seeAlso <http://wordnet-rdf.princeton.edu/id/03826490-n> ;
+    rdfs:subClassOf d3f:DigitalArtifact ;
+    skos:altLabel "Computer Network" .
+
+d3f:ComputerNetworkNode a owl:Class ;
+    rdfs:label "Computer Network Node" ;
+    d3f:definition "A network node running on a computer platform." ;
+    rdfs:subClassOf d3f:DigitalArtifact .
+
+d3f:Router a owl:Class ;
+    rdfs:label "Router" ;
+    d3f:definition "A router is a networking device that forwards data packets between computer networks. Routers perform the traffic directing functions on the Internet. Data sent through the internet, such as a web page or email, is in the form of data packets. A packet is typically forwarded from one router to another router through the networks that constitute an internetwork (e.g. the Internet) until it reaches its destination node." ;
+    rdfs:isDefinedBy <http://dbpedia.org/resource/Router_(computing)> ;
+    rdfs:subClassOf d3f:ComputerNetworkNode .
+
+d3f:WirelessAccessPoint a owl:Class ;
+    rdfs:label "Wireless Access Point" ;
+    d3f:definition "In computer networking, a wireless access point (WAP), or more generally just access point (AP), is a networking hardware device that allows other Wi-Fi devices to connect to a wired network. The AP usually connects to a router (via a wired network) as a standalone device, but it can also be an integral component of the router itself. An AP is differentiated from a hotspot which is a physical location where Wi-Fi access is available." ;
+    rdfs:isDefinedBy <http://dbpedia.org/resource/Wireless_access_point> ;
+    rdfs:subClassOf d3f:ComputerNetworkNode ;
+    skos:altLabel "WAP" .
+
+d3f:Firewall a owl:Class ;
+    rdfs:label "Firewall" ;
+    d3f:definition "In computing, a firewall is a network security system that monitors and controls incoming and outgoing network traffic based on predetermined security rules. A firewall typically establishes a barrier between a trusted internal network and untrusted external network, such as the Internet. Firewalls are often categorized as either network firewalls or host-based firewalls. Network firewalls filter traffic between two or more networks and run on network hardware. Host-based firewalls run on host computers and control network traffic in and out of those machines. This definition refers to network firewalls." ;
+    rdfs:seeAlso <http://dbpedia.org/resource/Firewall_(computing)> ;
+    rdfs:subClassOf d3f:ComputerNetworkNode ;
+    skos:altLabel "Network Firewall" .
+
+d3f:PersonalComputer a owl:Class ;
+    rdfs:label "Personal Computer" ;
+    d3f:definition "A personal computer (PC) is a multi-purpose computer whose size, capabilities, and price make it feasible for individual use. Personal computers are intended to be operated directly by an end user, rather than by a computer expert or technician. Unlike large, costly minicomputers and mainframes, time-sharing by many people at the same time is not used with personal computers. PCs have in practice become powerful enough that they may be shared by multiple users at any given time, though this is not common practice nor the primary purpose of a PC." ;
+    rdfs:isDefinedBy <http://dbpedia.org/resource/Personal_computer> ;
+    rdfs:subClassOf d3f:DigitalArtifact .
+
+d3f:LaptopComputer a owl:Class ;
+    rdfs:label "Laptop Computer" ;
+    d3f:definition "A laptop computer (also laptop), is a small, portable personal computer (PC) with a \"clamshell\" form factor, typically having a thin LCD or LED computer screen mounted on the inside of the upper lid of the clamshell and an alphanumeric keyboard on the inside of the lower lid. The clamshell is opened up to use the computer. Laptops are folded shut for transportation, and thus are suitable for mobile use. Its name comes from lap, as it was deemed to be placed on a person's lap when being used. Although originally there was a distinction between laptops and notebooks (the former being bigger and heavier than the latter), as of 2014, there is often no longer any difference. Today, laptops are commonly used in a variety of settings, such as at work, in education, for playing games, web browsing" ;
+    rdfs:isDefinedBy <http://dbpedia.org/resource/Laptop> ;
+    rdfs:subClassOf d3f:PersonalComputer ;
+    skos:altLabel "Laptop",
+        "Notebook" .
+
+d3f:MobilePhone a owl:Class ;
+    rdfs:label "Mobile Phone" ;
+    d3f:definition "A mobile phone, cellular phone, cell phone, cellphone or hand phone, sometimes shortened to simply mobile, cell or just phone, is a portable telephone that can make and receive calls over a radio frequency link while the user is moving within a telephone service area. The radio frequency link establishes a connection to the switching systems of a mobile phone operator, which provides access to the public switched telephone network (PSTN). Modern mobile telephone services use a cellular network architecture and, therefore, mobile telephones are called cellular telephones or cell phones in North America. In addition to telephony, digital mobile phones (2G) support a variety of other services, such as text messaging, MMS, email, Internet access, short-range wireless communications (infrared," ;
+    rdfs:isDefinedBy <http://dbpedia.org/resource/Mobile_phone> ;
+    rdfs:subClassOf d3f:PersonalComputer ;
+    skos:altLabel "Cellphone",
+        "Cellular Phone" .
+
+d3f:DesktopComputer a owl:Class ;
+    rdfs:label "Desktop Computer" ;
+    d3f:definition "A desktop computer is a personal computer designed for regular use at a single location on or near a desk or table due to its size and power requirements. The most common configuration has a case that houses the power supply, motherboard (a printed circuit board with a microprocessor as the central processing unit (CPU), memory, bus, and other electronic components, disk storage (usually one or more hard disk drives, solid state drives, optical disc drives, and in early models a floppy disk drive); a keyboard and mouse for input; and a computer monitor, speakers, and, often, a printer for output. The case may be oriented horizontally or vertically and placed either underneath, beside, or on top of a desk." ;
+    rdfs:isDefinedBy <http://dbpedia.org/resource/Desktop_computer> ;
+    rdfs:subClassOf d3f:PersonalComputer .
+
+## ATT&CK
+stix:AttackPattern a owl:Class ;
+    rdfs:label "Attack Pattern" ;
+    rdfs:comment "A type of TTP that describe ways that adversaries attempt to compromise targets." .
+
+stix:CourseOfAction a owl:class ;
+    rdfs:label "Course of Action" ;
+    rdfs:comment "A recommendation from a producer of intelligence to a consumer on the actions that they might take in response to that intelligence." .
+
+stix:IntrusionSet a owl:Class ;
+    rdfs:label "Intrusion Set" ;
+    rdfs:comment "A grouped set of adversarial behaviors and resources with common properties that is believed to be orchestrated by a single organization." .
+
+stix:Malware a owl:Class ;
+    rdfs:label "Malware" ;
+    rdfs:comment "A type of TTP that represents malicious code." .
+
+stix:DataComponent a owl:Class ;
+    rdfs:label "Data Component" ;
+    rdfs:comment "A class that describe an object used in detection" .
+
+stix:mitigates a owl:ObjectProperty ;
+    rdfs:domain stix:CourseOfAction ;
+    rdfs:range stix:AttackPattern .
+
+stix:detects a owl:ObjectProperty ;
+    rdfs:domain stix:DataComponent ;
+    rdfs:range stix:AttackPattern .
+
+stix:uses a owl:ObjectProperty ;
+    rdfs:domain stix:Malware, stix:IntrusionSet ;
+    rdfs:range stix:AttackPattern .
+
+stix:impacts a owl:ObjectProperty ;
+    rdfs:domain stix:AttackPattern ;
+    rdfs:range d3f:DigitalArtifact .
+
+stix:referenced-by a owl:ObjectProperty ;
+    rdfs:domain stix:AttackPattern ;
+    rdfs:range stix:ExternalReference .
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------
+# DATA DEFINITION
+## EXAMPLE NETWORK
+arch:LAN1 a d3f:Network ;
+    rdfs:label "LAN 1" ;
+    arch:contains arch:POP3Server1 ;
+    arch:contains arch:DNSServer ;
+    arch:contains arch:SMTPServer1 ;
+    arch:contains arch:Router1 .
+
+arch:LAN2 a d3f:Network ;
+    rdfs:label "LAN 2" ;
+    arch:contains arch:WirelessAP ;
+    arch:contains arch:Laptop1 ;
+    arch:contains arch:Laptop2 ;
+    arch:contains arch:Mobile ;
+    arch:contains arch:Firewall ;
+    arch:contains arch:Desktop1 .
+
+arch:Remote a d3f:Network ;
+    rdfs:label "Remote Network" ;
+    arch:contains arch:VPNServer ;
+    arch:contains arch:Desktop2 .
+
+### LAN1 DEVICES
+arch:POP3Server1 a arch:POP3Server; 
+    rdfs:label "POP3 Server 1" ;
+    arch:wired_connection arch:Router1 ;
+    arch:provide_mail_access arch:Laptop1 ;
+    arch:provide_mail_access arch:Laptop2 ;
+    arch:provide_mail_access arch:Desktop1 ;
+    arch:provide_mail_access arch:Mobile .
+arch:DNSServer a d3f:DNSServer ;
+    rdfs:label "DNS Server" ;
+    arch:wired_connection arch:Router1 ;
+    arch:resolves_mail arch:SMTPServer1 ;
+    arch:validates_mail_domains arch:SMTPServer1 .
+arch:SMTPServer1 a arch:SMTPServer ;
+    rdfs:label "SMTP Server 1" ;
+    arch:wired_connection arch:Router1 ;
+    arch:delivers_mail arch:POP3Server1 .
+arch:Router1 a d3f:Router ;
+    rdfs:label "Router 1" .
+
+### LAN2 DEVICES
+arch:WirelessAP a d3f:WirelessAccessPoint ;
+    rdfs:label "Wireless AP" .
+arch:Laptop1 a d3f:LaptopComputer ;
+    rdfs:label "Laptop 1" ;
+    arch:wireless_connection arch:WirelessAP .
+arch:Laptop2 a d3f:LaptopComputer ;
+    rdfs:label "Laptop 2" ;
+    arch:wireless_connection arch:WirelessAP .
+arch:Desktop1 a d3f:DesktopComputer ;
+    rdfs:label "Desktop 1" ;
+    arch:wireless_connection arch:WirelessAP .
+arch:Mobile a d3f:MobilePhone ;
+    rdfs:label "Mobile" ;
+    arch:wireless_connection arch:WirelessAP .
+arch:Firewall a d3f:Firewall ;
+    rdfs:label "Firewall" ;
+    arch:filter_traffic arch:Router1 ;
+    arch:filter_traffic arch:VPNServer .
+
+### REMOTE DEVICES
+arch:VPNServer a d3f:VPNServer ;
+    rdfs:label "VPN Server" ;
+    arch:provides_vpn_access arch:Desktop2 ;
+    arch:provides_vpn_access arch:WirelessAP ;
+    arch:provides_vpn_access arch:Router1 .
+arch:Desktop2 a d3f:DesktopComputer ;
+    rdfs:label "Desktop 2" .
+
+## ATT&CK
+### Network Denial of Service
+stix:NetworkDenialOfService a stix:AttackPattern ;
+    rdfs:label "Network Denial of Service" ;
+    stix:description "Adversaries may perform Network Denial of Service (DoS) attacks to degrade or block the availability of targeted resources to users. Network DoS can be performed by exhausting the network bandwidth services rely on. Example resources include specific websites, email services, DNS, and web-based applications. Adversaries have been observed conducting network DoS attacks for political purposes(Citation: FireEye OpPoisonedHandover February 2016) and to support other malicious activities, including distraction(Citation: FSISAC FraudNetDoS September 2012), hacktivism, and extortion.(Citation: Symantec DDoS October 2014)\n\nA Network DoS will occur when the bandwidth capacity of the network connection to a system is exhausted due to the volume of malicious traffic directed at the resource or the network connections and network devices the resource relies on. For example, an adversary may send 10Gbps of traffic to a server that is hosted by a network with a 1Gbps connection to the internet. This traffic can be generated by a single system or multiple systems spread across the internet, which is commonly referred to as a distributed DoS (DDoS).\n\nTo perform Network DoS attacks several aspects apply to multiple methods, including IP address spoofing, and botnets.\n\nAdversaries may use the original IP address of an attacking system, or spoof the source IP address to make the attack traffic more difficult to trace back to the attacking system or to enable reflection. This can increase the difficulty defenders have in defending against the attack by reducing or eliminating the effectiveness of filtering by the source address on network defense devices.\n\nFor DoS attacks targeting the hosting system directly, see [Endpoint Denial of Service](https://attack.mitre.org/techniques/T1499)." ;
+    stix:mitre-attack "https://attack.mitre.org/techniques/T1498" ;
+    stix:detection "Detection of Network DoS can sometimes be achieved before the traffic volume is sufficient to cause impact to the availability of the service, but such response time typically requires very aggressive monitoring and responsiveness or services provided by an upstream network service provider. Typical network throughput monitoring tools such as netflow(Citation: Cisco DoSdetectNetflow), SNMP, and custom scripts can be used to detect sudden increases in network or service utilization. Real-time, automated, and qualitative study of the network traffic can identify a sudden surge in one type of protocol can be used to detect an Network DoS event as it starts. Often, the lead time may be small and the indicator of an event availability of the network or service drops. The analysis tools mentioned can then be used to determine the type of DoS causing the outage and help with remediation." ;
+    stix:impact-type "Availability" ;
+    stix:deprecated "false" ;
+    stix:is_subtechnique "false" ;
+    stix:platforms "Windows\nIaaS\nLinux\nmacOS\nContainers" .
+
+stix:NetworkDenialOfService stix:impacts d3f:Server .
+
+#### Procedure examples
+stix:APT28 a stix:IntrusionSet ;
+    rdfs:label "APT28" ;
+    stix:description "In 2016, [APT28](https://attack.mitre.org/groups/G0007) conducted a distributed denial of service (DDoS) attack against the World Anti-Doping Agency.(Citation: US District Court Indictment GRU Oct 2018)" .
+
+stix:NKAbuse a stix:Malware ;
+    rdfs:label "NKAbuse" ;
+    stix:description "[NKAbuse](https://attack.mitre.org/software/S1107) enables multiple types of network denial of service capabilities across several protocols post-installation.(Citation: NKAbuse SL)" .
+
+stix:Lucifer a stix:Malware ;
+    rdfs:label "Lucifer" ;
+    stix:description "[Lucifer](https://attack.mitre.org/software/S0532) can execute TCP, UDP,  and HTTP denial of service (DoS) attacks.(Citation: Unit 42 Lucifer June 2020)" .
+
+stix:APT28 stix:uses stix:NetworkDenialOfService .
+stix:NKAbuse stix:uses stix:NetworkDenialOfService .
+stix:Lucifer stix:uses stix:NetworkDenialOfService .
+
+#### Detection
+stix:NetworkTrafficFlow a stix:DataComponent ;
+    rdfs:label "Network Traffic Flow" ;
+    stix:data-source "Network Traffic" ;
+    stix:description "Monitor network data for uncommon data flows. Processes utilizing the network that do not normally have network communication or have never been seen before are suspicious." .
+
+stix:HostStatus a stix:DataComponent ;
+    rdfs:label "Host Status" ;
+    stix:data-source "Sensor Health" ;
+    stix:description "Detection of Network DoS can sometimes be achieved before the traffic volume is sufficient to cause impact to the availability of the service, but such response time typically requires very aggressive monitoring and responsiveness or services provided by an upstream network service provider. Monitor for logging, messaging, and other artifacts highlighting the health of host sensors (ex: metrics, errors, and/or exceptions from logging applications)\n\n\nDetection of Endpoint DoS can sometimes be achieved before the effect is sufficient to cause significant impact to the availability of the service, but such response time typically requires very aggressive monitoring and responsiveness. Monitor for logging, messaging, and other artifacts highlighting the health of host sensors (ex: metrics, errors, and/or exceptions from logging applications)" .
+
+stix:NetworkTrafficFlow stix:detects stix:NetworkDenialOfService .
+stix:HostStatus stix:detects stix:NetworkDenialOfService .
+
+#### Mitigation
+stix:FilterNetworkTraffic a stix:CourseOfAction ;
+    rdfs:label "Filter Network Traffic" ;
+    stix:description "When flood volumes exceed the capacity of the network connection being targeted, it is typically necessary to intercept the incoming traffic upstream to filter out the attack traffic from the legitimate traffic. Such defenses can be provided by the hosting Internet Service Provider (ISP) or by a 3rd party such as a Content Delivery Network (CDN) or providers specializing in DoS mitigations.(Citation: CERT-EU DDoS March 2017)\n\nDepending on flood volume, on-premises filtering may be possible by blocking source addresses sourcing the attack, blocking ports that are being targeted, or blocking protocols being used for transport.(Citation: CERT-EU DDoS March 2017)\n\nAs immediate response may require rapid engagement of 3rd parties, analyze the risk associated to critical resources being affected by Network DoS attacks and create a disaster recovery plan/business continuity plan to respond to incidents.(Citation: CERT-EU DDoS March 2017)\n\n\nLeverage services provided by Content Delivery Networks (CDN) or providers specializing in DoS mitigations to filter traffic upstream from services.(Citation: CERT-EU DDoS March 2017) Filter boundary traffic by blocking source addresses sourcing the attack, blocking ports that are being targeted, or blocking protocols being used for transport. To defend against SYN floods, enable SYN Cookies." .
+
+stix:FilterNetworkTraffic stix:mitigates stix:NetworkDenialOfService .
+
+#### External References
+stix:CiscoDoSdetectNetflow a stix:ExternalReference ;
+    rdfs:label "Cisco DoSdetectNetflow" ;
+    stix:description "Cisco. (n.d.). Detecting and Analyzing Network Threats With NetFlow. Retrieved April 25, 2019." ;
+    stix:url "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/netflow/configuration/15-mt/nf-15-mt-book/nf-detct-analy-thrts.pdf" .
+
+stix:FSISACFraudNetDoSSeptember2012 a stix:ExternalReference ;
+    rdfs:label "FSISAC FraudNetDoS September 2012" ;
+    stix:description "FS-ISAC. (2012, September 17). Fraud Alert \u2013 Cyber Criminals Targeting Financial Institution Employee Credentials to Conduct Wire Transfer Fraud. Retrieved September 23, 2024." ;
+    stix:url "https://www.ic3.gov/Media/PDF/Y2012/FraudAlertFinancialInstitutionEmployeeCredentialsTargeted.pdf" .
+
+stix:FireEyeOpPoisonedHandoverFebruary2016 a stix:ExternalReference ;
+    rdfs:label "FireEye OpPoisonedHandover February 2016" ;
+    stix:description "Ned Moran, Mike Scott, Mike Oppenheim of FireEye. (2014, November 3). Operation Poisoned Handover: Unveiling Ties Between APT Activity in Hong Kong\u2019s Pro-Democracy Movement. Retrieved April 18, 2019." ;
+    stix:url "https://www.fireeye.com/blog/threat-research/2014/11/operation-poisoned-handover-unveiling-ties-between-apt-activity-in-hong-kongs-pro-democracy-movement.html" .
+
+stix:SymantecDDoSOctober2014 a stix:ExternalReference ;
+    rdfs:label "Symantec DDoS October 2014" ;
+    stix:description "Wueest, C.. (2014, October 21). The continued rise of DDoS attacks. Retrieved April 24, 2019." ;
+    stix:url "https://www.symantec.com/content/en/us/enterprise/media/security_response/whitepapers/the-continued-rise-of-ddos-attacks.pdf" .
+
+stix:USDistrictCourtIndictmentGRUOct2018 a stix:ExternalReference ;
+    rdfs:label "US District Court Indictment GRU Oct 2018" ;
+    stix:description "Brady, S . (2018, October 3). Indictment - United States vs Aleksei Sergeyevich Morenets, et al.. Retrieved October 1, 2020." ;
+    stix:url "https://www.justice.gov/opa/page/file/1098481/download" .
+
+stix:NKAbuseSL a stix:ExternalReference ;
+    rdfs:label "NKAbuseSL" ;
+    stix:description "KASPERSKY GERT. (2023, December 14). Unveiling NKAbuse: a new multiplatform threat abusing the NKN protocol. Retrieved February 8, 2024." ;
+    stix:url "https://securelist.com/unveiling-nkabuse/111512/" .
+
+stix:Unit42LuciferJune2020 a stix:ExternalReference ;
+    rdfs:label "Unit42LuciferJune2020" ;
+    stix:description "Hsu, K. et al. (2020, June 24). Lucifer: New Cryptojacking and DDoS Hybrid Malware Exploiting High and Critical Vulnerabilities to Infect Windows Devices. Retrieved November 16, 2020." ;
+    stix:url "https://unit42.paloaltonetworks.com/lucifer-new-cryptojacking-and-ddos-hybrid-malware/" .
+
+stix:NetworkDenialOfService stix:referenced-by stix:CiscoDoSdetectNetflow ,
+    stix:FSISACFraudNetDoSSeptember2012 ,
+    stix:FireEyeOpPoisonedHandoverFebruary2016 ,
+    stix:SymantecDDoSOctober2014 ,
+    stix:CERT-EUDDoSMarch2017 ,
+    stix:USDistrictCourtIndictmentGRUOct2018 ,
+    stix:NKAbuseSL ,
+    stix:Unit42LuciferJune2020 .
+
+
+
+### Direct Network Flood
+stix:DirectNetworkFlood a stix:AttackPattern ;
+    rdfs:label "Direct Network Flood" ;
+    stix:description "Adversaries may attempt to cause a denial of service (DoS) by directly sending a high-volume of network traffic to a target. This DoS attack may also reduce the availability and functionality of the targeted system(s) and network. [Direct Network Flood](https://attack.mitre.org/techniques/T1498/001)s are when one or more systems are used to send a high-volume of network packets towards the targeted service's network. Almost any network protocol may be used for flooding. Stateless protocols such as UDP or ICMP are commonly used but stateful protocols such as TCP can be used as well.\n\nBotnets are commonly used to conduct network flooding attacks against networks and services. Large botnets can generate a significant amount of traffic from systems spread across the global Internet. Adversaries may have the resources to build out and control their own botnet infrastructure or may rent time on an existing botnet to conduct an attack. In some of the worst cases for distributed DoS (DDoS), so many systems are used to generate the flood that each one only needs to send out a small amount of traffic to produce enough volume to saturate the target network. In such circumstances, distinguishing DDoS traffic from legitimate clients becomes exceedingly difficult. Botnets have been used in some of the most high-profile DDoS flooding attacks, such as the 2012 series of incidents that targeted major US banks.(Citation: USNYAG IranianBotnet March 2016)" ;
+    stix:mitre-attack "https://attack.mitre.org/techniques/T1498/001" ;
+    stix:detection "Detection of a network flood can sometimes be achieved before the traffic volume is sufficient to cause impact to the availability of the service, but such response time typically requires very aggressive monitoring and responsiveness or services provided by an upstream network service provider. Typical network throughput monitoring tools such as netflow(Citation: Cisco DoSdetectNetflow), SNMP, and custom scripts can be used to detect sudden increases in network or service utilization. Real-time, automated, and qualitative study of the network traffic can identify a sudden surge in one type of protocol can be used to detect a network flood event as it starts. Often, the lead time may be small and the indicator of an event availability of the network or service drops. The analysis tools mentioned can then be used to determine the type of DoS causing the outage and help with remediation." ;
+    stix:impact-type "Availability" ;
+    stix:deprecated "false" ;
+    stix:is_subtechnique "true" ;
+    stix:platforms "Windows\nIaaS\nLinux\nmacOS" .
+
+stix:DirectNetworkFlood stix:impacts d3f:Server .
+stix:DirectNetworkFlood stix:subtechnique-of stix:NetworkDenialOfService .
+
+#### Mitigation
+stix:FilterNetworkTraffic stix:mitigates stix:DirectNetworkFlood .
+
+#### Detection
+stix:NetworkTrafficFlow stix:detects stix:DirectNetworkFlood .
+stix:HostStatus stix:detects stix:DirectNetworkFlood .
+
+#### External References
+stix:USNYAGIranianBotnetMarch2016 a stix:ExternalReference ;
+    rdfs:label "USNYAG IranianBotnet March 2016" ;
+    stix:description "Preet Bharara, US Attorney. (2016, March 24). Retrieved April 23, 2019." ;
+    stix:url "https://www.justice.gov/opa/pr/seven-iranians-working-islamic-revolutionary-guard-corps-affiliated-entities-charged" .
+
+stix:DirectNetworkFlood stix:referenced-by stix:CiscoDoSdetectNetflow ,
+    stix:USNYAGIranianBotnetMarch2016 ,
+    stix:CERT-EUDDoSMarch2017 .
+
+### Reflection Amplification
+stix:ReflectionAmplification a stix:AttackPattern ;
+    rdfs:label "Reflection Amplification" ;
+    stix:description "Adversaries may attempt to cause a denial of service (DoS) by reflecting a high-volume of network traffic to a target. This type of Network DoS takes advantage of a third-party server intermediary that hosts and will respond to a given spoofed source IP address. This third-party server is commonly termed a reflector. An adversary accomplishes a reflection attack by sending packets to reflectors with the spoofed address of the victim. Similar to Direct Network Floods, more than one system may be used to conduct the attack, or a botnet may be used. Likewise, one or more reflectors may be used to focus traffic on the target.(Citation: Cloudflare ReflectionDoS May 2017) This Network DoS attack may also reduce the availability and functionality of the targeted system(s) and network.\n\nReflection attacks often take advantage of protocols with larger responses than requests in order to amplify their traffic, commonly known as a Reflection Amplification attack. Adversaries may be able to generate an increase in volume of attack traffic that is several orders of magnitude greater than the requests sent to the amplifiers. The extent of this increase will depending upon many variables, such as the protocol in question, the technique used, and the amplifying servers that actually produce the amplification in attack volume. Two prominent protocols that have enabled Reflection Amplification Floods are DNS(Citation: Cloudflare DNSamplificationDoS) and NTP(Citation: Cloudflare NTPamplificationDoS), though the use of several others in the wild have been documented.(Citation: Arbor AnnualDoSreport Jan 2018)  In particular, the memcache protocol showed itself to be a powerful protocol, with amplification sizes up to 51,200 times the requesting packet.(Citation: Cloudflare Memcrashed Feb 2018)" ;
+    stix:mitre-attack "https://attack.mitre.org/techniques/T1498/002" ;
+    stix:detection "Detection of a network flood can sometimes be achieved before the traffic volume is sufficient to cause impact to the availability of the service, but such response time typically requires very aggressive monitoring and responsiveness or services provided by an upstream network service provider. Typical network throughput monitoring tools such as netflow(Citation: Cisco DoSdetectNetflow), SNMP, and custom scripts can be used to detect sudden increases in network or service utilization. Real-time, automated, and qualitative study of the network traffic can identify a sudden surge in one type of protocol can be used to detect a network flood event as it starts. Often, the lead time may be small and the indicator of an event availability of the network or service drops. The analysis tools mentioned can then be used to determine the type of DoS causing the outage and help with remediation." ;
+    stix:impact-type "Availability" ;
+    stix:deprecated "false" ;
+    stix:is_subtechnique "true" ;
+    stix:platforms "Windows\nIaaS\nLinux\nmacOS" .
+
+stix:ReflectionAmplification stix:impacts d3f:Server .
+stix:ReflectionAmplification stix:subtechnique-of stix:NetworkDenialOfService .
+
+#### Mitigation
+stix:FilterNetworkTraffic stix:mitigates stix:ReflectionAmplification .
+
+#### Detection 
+stix:NetworkTrafficFlow stix:detects stix:ReflectionAmplification .
+stix:HostStatus stix:detects stix:ReflectionAmplification .
+
+#### External References
+stix:CloudflareDNSamplificationDoS a stix:ExternalReference ;
+    rdfs:label "Cloudflare DNSamplificationDoS" ;
+    stix:description "Cloudflare. (n.d.). What is a DNS amplification attack?. Retrieved April 23, 2019." ;
+    stix:url "https://www.cloudflare.com/learning/ddos/dns-amplification-ddos-attack/" .
+
+stix:CloudflareNTPamplificationDoS a stix:ExternalReference ;
+    rdfs:label "Cloudflare NTPamplificationDoS" ;
+    stix:description "Cloudflare. (n.d.). What is a NTP amplificaiton attack?. Retrieved April 23, 2019." ;
+    stix:url "https://www.cloudflare.com/learning/ddos/ntp-amplification-ddos-attack/" .
+
+stix:CloudflareReflectionDoSMay2017 a stix:ExternalReference ;
+    rdfs:label "Cloudflare ReflectionDoS May 2017" ;
+    stix:description "Marek Majkowsk, Cloudflare. (2017, May 24). Reflections on reflection (attacks). Retrieved April 23, 2019." ;
+    stix:url "https://blog.cloudflare.com/reflections-on-reflections/" .
+
+stix:CloudflareMemcrashedFeb2018 a stix:ExternalReference ;
+    rdfs:label "Cloudflare Memcrashed Feb 2018" ;
+    stix:description "Marek Majkowski of Cloudflare. (2018, February 27). Memcrashed - Major amplification attacks from UDP port 11211. Retrieved April 18, 2019." ;
+    stix:url "https://blog.cloudflare.com/memcrashed-major-amplification-attacks-from-port-11211/" .
+
+stix:ArborAnnualDoSreportJan2018 a stix:ExternalReference ;
+    rdfs:label "Arbor AnnualDoSreport Jan 2018" ;
+    stix:description "Philippe Alcoy, Steinthor Bjarnason, Paul Bowen, C.F. Chui, Kirill Kasavchnko, and Gary Sockrider of Netscout Arbor. (2018, January). Insight into the Global Threat Landscape - Netscout Arbor's 13th Annual Worldwide Infrastructure Security Report. Retrieved April 22, 2019." ;
+    stix:url "https://pages.arbornetworks.com/rs/082-KNA-087/images/13th_Worldwide_Infrastructure_Security_Report.pdf" .
+
+stix:ReflectionAmplification stix:referenced-by stix:CiscoDoSdetectNetflow ,
+    stix:CloudflareDNSamplificationDoS ,
+    stix:CloudflareNTPamplificationDoS ,
+    stix:CloudflareReflectionDoSMay2017 ,
+    stix:CloudflareMemcrashedFeb2018 ,
+    stix:ArborAnnualDoSreportJan2018 ,
+    stix:CERT-EUDDoSMarch2017 .
+
+### Endpoint Denial of Services
+stix:EndpointDenialOfService a stix:AttackPattern ;
+    rdfs:label "Endpoint Denial of Service" ;
+    stix:description "Adversaries may perform Endpoint Denial of Service (DoS) attacks to degrade or block the availability of services to users. Endpoint DoS can be performed by exhausting the system resources those services are hosted on or exploiting the system to cause a persistent crash condition. Example services include websites, email services, DNS, and web-based applications. Adversaries have been observed conducting DoS attacks for political purposes(Citation: FireEye OpPoisonedHandover February 2016) and to support other malicious activities, including distraction(Citation: FSISAC FraudNetDoS September 2012), hacktivism, and extortion.(Citation: Symantec DDoS October 2014)\n\nAn Endpoint DoS denies the availability of a service without saturating the network used to provide access to the service. Adversaries can target various layers of the application stack that is hosted on the system used to provide the service. These layers include the Operating Systems (OS), server applications such as web servers, DNS servers, databases, and the (typically web-based) applications that sit on top of them. Attacking each layer requires different techniques that take advantage of bottlenecks that are unique to the respective components. A DoS attack may be generated by a single system or multiple systems spread across the internet, which is commonly referred to as a distributed DoS (DDoS).\n\nTo perform DoS attacks against endpoint resources, several aspects apply to multiple methods, including IP address spoofing and botnets.\n\nAdversaries may use the original IP address of an attacking system, or spoof the source IP address to make the attack traffic more difficult to trace back to the attacking system or to enable reflection. This can increase the difficulty defenders have in defending against the attack by reducing or eliminating the effectiveness of filtering by the source address on network defense devices.\n\nBotnets are commonly used to conduct DDoS attacks against networks and services. Large botnets can generate a significant amount of traffic from systems spread across the global internet. Adversaries may have the resources to build out and control their own botnet infrastructure or may rent time on an existing botnet to conduct an attack. In some of the worst cases for DDoS, so many systems are used to generate requests that each one only needs to send out a small amount of traffic to produce enough volume to exhaust the target's resources. In such circumstances, distinguishing DDoS traffic from legitimate clients becomes exceedingly difficult. Botnets have been used in some of the most high-profile DDoS attacks, such as the 2012 series of incidents that targeted major US banks.(Citation: USNYAG IranianBotnet March 2016)\n\nIn cases where traffic manipulation is used, there may be points in the global network (such as high traffic gateway routers) where packets can be altered and cause legitimate clients to execute code that directs network packets toward a target in high volume. This type of capability was previously used for the purposes of web censorship where client HTTP traffic was modified to include a reference to JavaScript that generated the DDoS code to overwhelm target web servers.(Citation: ArsTechnica Great Firewall of China)\n\nFor attacks attempting to saturate the providing network, see [Network Denial of Service](https://attack.mitre.org/techniques/T1498).\n" ;
+    stix:mitre-attack "https://attack.mitre.org/techniques/T1499" ;
+    stix:detection "Detection of Endpoint DoS can sometimes be achieved before the effect is sufficient to cause significant impact to the availability of the service, but such response time typically requires very aggressive monitoring and responsiveness. Typical network throughput monitoring tools such as netflow, SNMP, and custom scripts can be used to detect sudden increases in circuit utilization.(Citation: Cisco DoSdetectNetflow) Real-time, automated, and qualitative study of the network traffic can identify a sudden surge in one type of protocol can be used to detect an attack as it starts.\n\nIn addition to network level detections, endpoint logging and instrumentation can be useful for detection. Attacks targeting web applications may generate logs in the web server, application server, and/or database server that can be used to identify the type of attack, possibly before the impact is felt.\n\nExternally monitor the availability of services that may be targeted by an Endpoint DoS." ;
+    stix:impact-type "Availability" ;
+    stix:deprecated "false" ;
+    stix:is_subtechnique "false" ;
+    stix:platforms "Windows\nIaaS\nLinux\nmacOS\nContainers" .
+
+stix:EndpointDenialOfService stix:impacts d3f:Server .
+
+#### Procedure examples
+stix:OnionDuke a stix:Malware ;
+    rdfs:label "OnionDuke" ;
+    stix:description "[OnionDuke](https://attack.mitre.org/software/S0052) has the capability to use a Denial of Service module.(Citation: ESET Dukes October 2019)" .
+
+stix:SandwormTeam a stix:IntrusionSet ;
+    rdfs:label "Sandworm Team" ;
+    stix:description "[Sandworm Team](https://attack.mitre.org/groups/G0034) temporarily disrupted service to Georgian government, non-government, and private sector websites after compromising a Georgian web hosting provider in 2019.(Citation: US District Court Indictment GRU Unit 74455 October 2020)" .
+
+stix:ZxShell a stix:Malware ;
+    rdfs:label "ZxShell" ;
+    stix:description "[ZxShell](https://attack.mitre.org/software/S0412) has a feature to perform SYN flood attack on a host.(Citation: FireEye APT41 Aug 2019)(Citation: Talos ZxShell Oct 2014) " .
+
+stix:OnionDuke stix:uses stix:EndpointDenialOfService .
+stix:SandwormTeam stix:uses stix:EndpointDenialOfService .
+stix:ZxShell stix:uses stix:EndpointDenialOfService .
+
+#### Detection
+stix:NetworkTrafficContent a stix:DataComponent ;
+    rdfs:label "Network Traffic Content" ;
+    stix:data-source "Network Traffic" ;
+    stix:description "Monitor and analyze traffic patterns and packet inspection associated to protocol(s) that do not follow the expected protocol standards and traffic flows (e.g extraneous packets that do not belong to established flows, gratuitous or anomalous traffic patterns, anomalous syntax, or structure). Consider correlation with process monitoring and command line to detect anomalous processes execution and command line arguments associated to traffic patterns (e.g. monitor anomalies in use of files that do not normally initiate connections for respective protocol(s))." .
+
+stix:ApplicationLogContent a stix:DataComponent ;
+    rdfs:label "Application Log Content" ;
+    stix:data-source "Application Log" ;
+    stix:description "Monitor for third-party application logging, messaging, and/or other artifacts that may perform Endpoint Denial of Service (DoS) attacks to degrade or block the availability of services to users. In addition to network level detections, endpoint logging and instrumentation can be useful for detection. Attacks targeting web applications may generate logs in the web server, application server, and/or database server that can be used to identify the type of attack, possibly before the impact is felt. Externally monitor the availability of services that may be targeted by an Endpoint DoS." .
+
+stix:ApplicationLogContent stix:detects stix:EndpointDenialOfService .
+stix:NetworkTrafficFlow stix:detects stix:EndpointDenialOfService .
+stix:NetworkTrafficContent stix:detects stix:EndpointDenialOfService .
+stix:HostStatus stix:detects stix:EndpointDenialOfService .
+
+
+#### Mitigation
+stix:FilterNetworkTraffic stix:mitigates stix:EndpointDenialOfService .
+
+#### External References
+stix:ArsTechnicaGreatFirewallofChina a stix:ExternalReference ;
+    rdfs:label "ArsTechnica Great Firewall of China" ;
+    stix:description "Goodin, D.. (2015, March 31). Massive denial-of-service attack on GitHub tied to Chinese government. Retrieved April 19, 2019." ;
+    stix:url "https://arstechnica.com/information-technology/2015/03/massive-denial-of-service-attack-on-github-tied-to-chinese-government/" .
+
+stix:ESETDukesOctober2019 a stix:ExternalReference ;
+    rdfs:label "ESET Dukes October 2019" ;
+    stix:description "Faou, M., Tartare, M., Dupuy, T. (2019, October). OPERATION GHOST. Retrieved September 23, 2020." ;
+    stix:url "https://www.welivesecurity.com/wp-content/uploads/2019/10/ESET_Operation_Ghost_Dukes.pdf" .
+
+stix:USDistrictCourtIndictmentGRUUnit74455October2020 a stix:ExternalReference ;
+    rdfs:label "US District Court Indictment GRU Unit 74455 October 2020" ;
+    stix:description "Scott W. Brady. (2020, October 15). United States vs. Yuriy Sergeyevich Andrienko et al.. Retrieved November 25, 2020." ;
+    stix:url "https://www.justice.gov/opa/press-release/file/1328521/download" .
+
+stix:TalosZxShellOct2014 a stix:ExternalReference ;
+    rdfs:label "Talos ZxShell Oct 2014" ;
+    stix:description "Allievi, A., et al. (2014, October 28). Threat Spotlight: Group 72, Opening the ZxShell. Retrieved September 24, 2019." ;
+    stix:url "https://blogs.cisco.com/security/talos/opening-zxshell" .
+
+
+stix:EndpointDenialOfService stix:referenced-by stix:CiscoDoSdetectNetflow ,
+    stix:FSISACFraudNetDoSSeptember2012 ,
+    stix:ArsTechnicaGreatFirewallofChina ,
+    stix:FireEyeOpPoisonedHandoverFebruary2016 ,
+    stix:USNYAGIranianBotnetMarch2016 ,
+    stix:SymantecDDoSOctober2014 ,
+    stix:CERT-EUDDoSMarch2017 ,
+    stix:ESETDukesOctober2019 ,
+    stix:USDistrictCourtIndictmentGRUUnit74455October2020 ,
+    stix:TalosZxShellOct2014 .
+
+### OS Exhaustion Flood
+stix:OSExhaustionFlood a stix:AttackPattern ;
+    rdfs:label "OS Exhaustion Flood" ;
+    stix:description "Adversaries may perform Endpoint Denial of Service (DoS) attacks to degrade or block the availability of services to users. Endpoint DoS can be performed by exhausting the system resources those services are hosted on or exploiting the system to cause a persistent crash condition. Example services include websites, email services, DNS, and web-based applications. Adversaries have been observed conducting DoS attacks for political purposes(Citation: FireEye OpPoisonedHandover February 2016) and to support other malicious activities, including distraction(Citation: FSISAC FraudNetDoS September 2012), hacktivism, and extortion.(Citation: Symantec DDoS October 2014)\n\nAn Endpoint DoS denies the availability of a service without saturating the network used to provide access to the service. Adversaries can target various layers of the application stack that is hosted on the system used to provide the service. These layers include the Operating Systems (OS), server applications such as web servers, DNS servers, databases, and the (typically web-based) applications that sit on top of them. Attacking each layer requires different techniques that take advantage of bottlenecks that are unique to the respective components. A DoS attack may be generated by a single system or multiple systems spread across the internet, which is commonly referred to as a distributed DoS (DDoS).\n\nTo perform DoS attacks against endpoint resources, several aspects apply to multiple methods, including IP address spoofing and botnets.\n\nAdversaries may use the original IP address of an attacking system, or spoof the source IP address to make the attack traffic more difficult to trace back to the attacking system or to enable reflection. This can increase the difficulty defenders have in defending against the attack by reducing or eliminating the effectiveness of filtering by the source address on network defense devices.\n\nBotnets are commonly used to conduct DDoS attacks against networks and services. Large botnets can generate a significant amount of traffic from systems spread across the global internet. Adversaries may have the resources to build out and control their own botnet infrastructure or may rent time on an existing botnet to conduct an attack. In some of the worst cases for DDoS, so many systems are used to generate requests that each one only needs to send out a small amount of traffic to produce enough volume to exhaust the target's resources. In such circumstances, distinguishing DDoS traffic from legitimate clients becomes exceedingly difficult. Botnets have been used in some of the most high-profile DDoS attacks, such as the 2012 series of incidents that targeted major US banks.(Citation: USNYAG IranianBotnet March 2016)\n\nIn cases where traffic manipulation is used, there may be points in the global network (such as high traffic gateway routers) where packets can be altered and cause legitimate clients to execute code that directs network packets toward a target in high volume. This type of capability was previously used for the purposes of web censorship where client HTTP traffic was modified to include a reference to JavaScript that generated the DDoS code to overwhelm target web servers.(Citation: ArsTechnica Great Firewall of China)\n\nFor attacks attempting to saturate the providing network, see [Network Denial of Service](https://attack.mitre.org/techniques/T1498).\n" ;
+    stix:mitre-attack "https://attack.mitre.org/techniques/T1499/001" ;
+    stix:detection "Detection of Endpoint DoS can sometimes be achieved before the effect is sufficient to cause significant impact to the availability of the service, but such response time typically requires very aggressive monitoring and responsiveness. Typical network throughput monitoring tools such as netflow, SNMP, and custom scripts can be used to detect sudden increases in circuit utilization.(Citation: Cisco DoSdetectNetflow) Real-time, automated, and qualitative study of the network traffic can identify a sudden surge in one type of protocol can be used to detect an attack as it starts." ;
+    stix:impact-type "Availability" ;
+    stix:deprecated "false" ;
+    stix:is_subtechnique "true" ;
+    stix:platforms "Windows\nLinux\nmacOS" .
+
+stix:OSExhaustionFlood stix:impacts d3f:Server .
+stix:OSExhaustionFlood stix:subtechnique-of stix:EndpointDenialOfService .
+
+#### Detection
+stix:NetworkTrafficContent stix:detects stix:OSExhaustionFlood .
+stix:NetworkTrafficFlow stix:detects stix:OSExhaustionFlood .
+stix:HostStatus stix:detects stix:OSExhaustionFlood .
+
+#### Mitigation
+stix:FilterNetworkTraffic stix:mitigates stix:OSExhaustionFlood .
+
+#### External References
+stix:CloudflareSynFlood a stix:ExternalReference ;
+    rdfs:label "Cloudflare SynFlood" ;
+    stix:description "Cloudflare. (n.d.). What is a SYN flood attack?. Retrieved April 22, 2019." ;
+    stix:url "https://www.cloudflare.com/learning/ddos/syn-flood-ddos-attack/" .
+
+stix:CoreroSYN-ACKflood a stix:ExternalReference ;
+    rdfs:label "Corero SYN-ACKflood" ;
+    stix:description "Corero. (n.d.). What is a SYN-ACK Flood Attack?. Retrieved April 22, 2019." ;
+    stix:url "https://www.corero.com/resources/ddos-attack-types/syn-flood-ack.html" .
+
+stix:OSExhaustionFlood stix:referenced-by stix:CiscoDoSdetectNetflow ,
+    stix:CloudflareSynFlood ,
+    stix:CoreroSYN-ACKflood ,
+    stix:ArborAnnualDoSreportJan2018 ,
+    stix:CERT-EUDDoSMarch2017 .
+
+### Service Exhaustion Flood
+stix:ServiceExhaustionFlood a stix:AttackPattern ;
+    rdfs:label "Service Exhaustion Flood" ;
+    stix:description "Adversaries may target the different network services provided by systems to conduct a denial of service (DoS). Adversaries often target the availability of DNS and web services, however others have been targeted as well.(Citation: Arbor AnnualDoSreport Jan 2018) Web server software can be attacked through a variety of means, some of which apply generally while others are specific to the software being used to provide the service.\n\nOne example of this type of attack is known as a simple HTTP flood, where an adversary sends a large number of HTTP requests to a web server to overwhelm it and/or an application that runs on top of it. This flood relies on raw volume to accomplish the objective, exhausting any of the various resources required by the victim software to provide the service.(Citation: Cloudflare HTTPflood)\n\nAnother variation, known as a SSL renegotiation attack, takes advantage of a protocol feature in SSL/TLS. The SSL/TLS protocol suite includes mechanisms for the client and server to agree on an encryption algorithm to use for subsequent secure connections. If SSL renegotiation is enabled, a request can be made for renegotiation of the crypto algorithm. In a renegotiation attack, the adversary establishes a SSL/TLS connection and then proceeds to make a series of renegotiation requests. Because the cryptographic renegotiation has a meaningful cost in computation cycles, this can cause an impact to the availability of the service when done in volume.(Citation: Arbor SSLDoS April 2012)" ;
+    stix:mitre-attack "https://attack.mitre.org/techniques/T1499/002" ;
+    stix:detection "Detection of Endpoint DoS can sometimes be achieved before the effect is sufficient to cause significant impact to the availability of the service, but such response time typically requires very aggressive monitoring and responsiveness. Typical network throughput monitoring tools such as netflow, SNMP, and custom scripts can be used to detect sudden increases in circuit utilization.(Citation: Cisco DoSdetectNetflow) Real-time, automated, and qualitative study of the network traffic can identify a sudden surge in one type of protocol can be used to detect an attack as it starts.\n\nIn addition to network level detections, endpoint logging and instrumentation can be useful for detection. Attacks targeting web applications may generate logs in the web server, application server, and/or database server that can be used to identify the type of attack, possibly before the impact is felt.\n\nExternally monitor the availability of services that may be targeted by an Endpoint DoS." ;
+    stix:impact-type "Availability" ;
+    stix:deprecated "false" ;
+    stix:is_subtechnique "true" ;
+    stix:platforms "Windows\nIaaS\nLinux\nmacOS" .
+
+stix:ServiceExhaustionFlood stix:impacts d3f:Server .
+stix:ServiceExhaustionFlood stix:subtechnique-of stix:EndpointDenialOfService .
+
+#### Mitigation
+stix:FilterNetworkTraffic stix:mitigates stix:ServiceExhaustionFlood .
+
+#### Detection
+stix:ApplicationLogContent stix:detects stix:ServiceExhaustionFlood .
+stix:NetworkTrafficContent stix:detects stix:ServiceExhaustionFlood .
+stix:NetworkTrafficFlow stix:detects stix:ServiceExhaustionFlood .
+stix:HostStatus stix:detects stix:ServiceExhaustionFlood .
+
+
+#### External References
+stix:ArborSSLDoSApril2012 a stix:ExternalReference ;
+    rdfs:label "Arbor SSLDoS April 2012" ;
+    stix:description "ASERT Team, Netscout Arbor. (2012, April 24). DDoS Attacks on SSL: Something Old, Something New. Retrieved April 22, 2019." ;
+    stix:url "https://www.netscout.com/blog/asert/ddos-attacks-ssl-something-old-something-new" .
+
+stix:CloudflareHTTPflood a stix:ExternalReference ;
+    rdfs:label "Cloudflare HTTPflood" ;
+    stix:description "Cloudflare. (n.d.). What is an HTTP flood DDoS attack?. Retrieved April 22, 2019." ;
+    stix:url "https://www.cloudflare.com/learning/ddos/http-flood-ddos-attack/" .
+
+stix:ServiceExhaustionFlood stix:referenced-by stix:ArborSSLDoSApril2012 ,
+    stix:CiscoDoSdetectNetflow ,
+    stix:CloudflareHTTPflood ,
+    stix:ArborAnnualDoSreportJan2018 ,
+    stix:CERT-EUDDoSMarch2017 .
+
+
+### Application Exhaustion Flood
+stix:ApplicationExhaustionFlood a stix:AttackPattern ;
+    rdfs:label "Application Exhaustion Flood" ;
+    stix:description "Adversaries may target resource intensive features of applications to cause a denial of service (DoS), denying availability to those applications. For example, specific features in web applications may be highly resource intensive. Repeated requests to those features may be able to exhaust system resources and deny access to the application or the server itself.(Citation: Arbor AnnualDoSreport Jan 2018)" ;
+    stix:mitre-attack "https://attack.mitre.org/techniques/T1499/003" ;
+    stix:detection "Detection of Endpoint DoS can sometimes be achieved before the effect is sufficient to cause significant impact to the availability of the service, but such response time typically requires very aggressive monitoring and responsiveness. Typical network throughput monitoring tools such as netflow, SNMP, and custom scripts can be used to detect sudden increases in circuit utilization.(Citation: Cisco DoSdetectNetflow) Real-time, automated, and qualitative study of the network traffic can identify a sudden surge in one type of protocol can be used to detect an attack as it starts.\n\nIn addition to network level detections, endpoint logging and instrumentation can be useful for detection. Attacks targeting web applications may generate logs in the web server, application server, and/or database server that can be used to identify the type of attack, possibly before the impact is felt." ;
+    stix:impact-type "Availability" ;
+    stix:deprecated "false" ;
+    stix:is_subtechnique "true" ;
+    stix:platforms "Windows\nIaaS\nLinux\nmacOS" .
+
+stix:ApplicationExhaustionFlood stix:impacts d3f:Server .
+stix:ApplicationExhaustionFlood stix:subtechnique-of stix:EndpointDenialOfService .
+
+#### Mitigation
+stix:FilterNetworkTraffic stix:mitigates stix:ApplicationExhaustionFlood .
+
+#### Detection 
+stix:NetworkTrafficFlow stix:detects stix:ApplicationExhaustionFlood .
+stix:NetworkTrafficContent stix:detects stix:ApplicationExhaustionFlood .
+stix:HostStatus stix:detects stix:ApplicationExhaustionFlood .
+stix:ApplicationLogContent stix:detects stix:ApplicationExhaustionFlood .
+
+#### External References 
+stix:CERT-EUDDoSMarch2017 a stix:ExternalReference ;
+    rdfs:label "CERT-EU DDoS March 2017" ;
+    stix:description "Meintanis, S., Revuelto, V., Socha, K.. (2017, March 10). DDoS Overview and Response Guide. Retrieved April 24, 2019." ;
+    stix:url "http://cert.europa.eu/static/WhitePapers/CERT-EU_Security_Whitepaper_DDoS_17-003.pdf" .
+
+stix:ApplicationExhaustionFlood stix:referenced-by stix:CiscoDoSdetectNetflow ,
+    stix:ArborAnnualDoSreportJan2018 ,
+    stix:CERT-EUDDoSMarch2017 .
+
+### Application or System Exploitation
+stix:ApplicationorSystemExploitation a stix:AttackPattern ;
+    rdfs:label "Application or System Exploitation" ;
+    stix:description "Adversaries may exploit software vulnerabilities that can cause an application or system to crash and deny availability to users. (Citation: Sucuri BIND9 August 2015) Some systems may automatically restart critical applications and services when crashes occur, but they can likely be re-exploited to cause a persistent denial of service (DoS) condition.\n\nAdversaries may exploit known or zero-day vulnerabilities to crash applications and/or systems, which may also lead to dependent applications and/or systems to be in a DoS condition. Crashed or restarted applications or systems may also have other effects such as [Data Destruction](https://attack.mitre.org/techniques/T1485), [Firmware Corruption](https://attack.mitre.org/techniques/T1495), [Service Stop](https://attack.mitre.org/techniques/T1489) etc. which may further cause a DoS condition and deny availability to critical information, applications and/or systems. " ;
+    stix:mitre-attack "https://attack.mitre.org/techniques/T1499/004" ;
+    stix:detection "Attacks targeting web applications may generate logs in the web server, application server, and/or database server that can be used to identify the type of attack. Externally monitor the availability of services that may be targeted by an Endpoint DoS." ;
+    stix:impact-type "Availability" ;
+    stix:deprecated "false" ;
+    stix:is_subtechnique "true" ;
+    stix:platforms "Windows\nIaaS\nLinux\nmacOS" .
+
+stix:ApplicationorSystemExploitation stix:impacts d3f:Server .
+stix:ApplicationorSystemExploitation stix:subtechnique-of stix:EndpointDenialOfService .
+
+#### Procedure examples
+stix:Industroyer a stix:Malware ;
+    rdfs:label "Industroyer" ;
+    stix:description "[Industroyer](https://attack.mitre.org/software/S0604) uses a custom DoS tool that leverages CVE-2015-5374 and targets hardcoded IP addresses of Siemens SIPROTEC devices.(Citation: ESET Industroyer)" .
+
+stix:Industroyer stix:uses stix:ApplicationorSystemExploitation .
+
+#### Mitigation 
+stix:FilterNetworkTraffic stix:mitigates stix:ApplicationorSystemExploitation .
+
+#### Detection
+stix:ApplicationLogContent stix:detects stix:ApplicationorSystemExploitation .
+stix:HostStatus stix:detects stix:ApplicationorSystemExploitation .
+stix:NetworkTrafficContent stix:detects stix:ApplicationorSystemExploitation .
+stix:NetworkTrafficFlow stix:detects stix:ApplicationorSystemExploitation .
+
+#### External References 
+stix:SucuriBIND9August2015 a stix:ExternalReference ;
+    rdfs:label "Sucuri BIND9 August 2015" ;
+    stix:description "Cid, D.. (2015, August 2). BIND9 \u2013 Denial of Service Exploit in the Wild. Retrieved April 26, 2019." ;
+    stix:url "https://blog.sucuri.net/2015/08/bind9-denial-of-service-exploit-in-the-wild.html" .
+
+stix:ESETIndustroyer a stix:ExternalReference ;
+    rdfs:label "ESET Industroyer" ;
+    stix:description "Meintanis, S., Revuelto, V., Socha, K.. (2017, March 10). DDoS Overview and Response Guide. Retrieved April 24, 2019." ;
+    stix:url "http://cert.europa.eu/static/WhitePapers/CERT-EU_Security_Whitepaper_DDoS_17-003.pdf" .
+
+stix:ApplicationorSystemExploitation stix:referenced-by stix:SucuriBIND9August2015 ,
+    stix:CERT-EUDDoSMarch2017 ,
+    stix:ESETIndustroyer .
+
+
+
+
+
+
+
+
+
+
+
+

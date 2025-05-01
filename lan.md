@@ -9,7 +9,7 @@ dnsServer[DNSServer d3f:DNSServer] -->|resolves_mail| smtp
 end
 
 subgraph LAN2 ["LAN2 d3f:Network"]
-wifiAP[Wireless AP d3f:WirelessAccessPoint] -->|wired_connection| firewall[Firewall d3f:Firewall]
+wifiAP[Wireless AP d3f:WirelessAccessPoint]
 laptop1[Laptop 1 d3f:LaptopComputer] -->|wireless_connection| wifiAP
 laptop2[Laptop 2 d3f:LaptopComputer] -->|wireless_connection| wifiAP
 desktop1[Desktop 1 d3f:DesktopComputer] -->|wireless_connection| wifiAP
